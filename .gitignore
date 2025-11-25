@@ -1,0 +1,9 @@
+.env*
+.next
+node_modules
+out
+*.log
+package-lock.json
+.vercel
+dist
+

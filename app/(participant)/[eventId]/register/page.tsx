@@ -3,7 +3,9 @@ import { supabase } from '@/lib/supabaseClient';
 import RegistrationProgress from '@/components/participant/RegistrationProgress';
 import BasicInfoForm from '@/components/participant/BasicInfoForm';
 import PassportForm from '@/components/participant/PassportForm';
-import { BasicInfo, PageProps } from '@/lib/types';
+import TravelForm from '@/components/participant/TravelForm';
+import HotelForm from '@/components/participant/HotelForm';
+import { BasicInfo, PageProps, Participant } from '@/lib/types';
 
 const DEV_PARTICIPANT_ID = '997b69c7-2c97-4043-a6d1-4d1646700001';
 
@@ -25,12 +27,14 @@ export default async function RegistrationPage({ params, searchParams }: PagePro
     return notFound();
   }
 
+  const participant = participantData as Participant;
+
   const initialBasicInfo: BasicInfo = {
-    name: participantData.name ?? '',
-    email: participantData.email ?? '',
-    phone: participantData.phone ?? '',
-    company: participantData.company ?? '',
-    position: participantData.position ?? '',
+    name: participant.name ?? '',
+    email: participant.email ?? '',
+    phone: participant.phone ?? '',
+    company: participant.company ?? '',
+    position: participant.position ?? '',
   };
 
   const renderStepComponent = (slug: string) => {
@@ -43,14 +47,45 @@ export default async function RegistrationPage({ params, searchParams }: PagePro
             eventId={eventId}
             participantId={participantId}
             initialData={{
-              passport_number: participantData.passport_number ?? '',
-              passport_expiry: participantData.passport_expiry ?? '',
-              visa_required: participantData.visa_required ?? false,
+              passport_number: participant.passport_number ?? '',
+              passport_expiry: participant.passport_expiry ?? '',
+              visa_required: participant.visa_required ?? false,
             }}
           />
         );
       case 'flight':
+        return (
+          <TravelForm
+            eventId={eventId}
+            participantId={participantId}
+            initialData={{
+              gender: participant.gender ?? undefined,
+              dob: participant.dob ?? undefined,
+              seat_preference: participant.seat_preference ?? undefined,
+              arrival_date: participant.arrival_date ?? undefined,
+              arrival_time: participant.arrival_time ?? undefined,
+              arrival_airport: participant.arrival_airport ?? undefined,
+              arrival_flight: participant.arrival_flight ?? undefined,
+              departure_date: participant.departure_date ?? undefined,
+              departure_time: participant.departure_time ?? undefined,
+              departure_airport: participant.departure_airport ?? undefined,
+              departure_flight: participant.departure_flight ?? undefined,
+            }}
+          />
+        );
       case 'hotel':
+        return (
+          <HotelForm
+            eventId={eventId}
+            participantId={participantId}
+            initialData={{
+              hotel_check_in: participant.hotel_check_in ?? undefined,
+              hotel_check_out: participant.hotel_check_out ?? undefined,
+              room_preference: participant.room_preference ?? undefined,
+              sharing_details: participant.sharing_details ?? undefined,
+            }}
+          />
+        );
       case 'requests':
       case 'companions':
         return (

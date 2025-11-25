@@ -15,9 +15,15 @@ interface PassportFormProps {
     passport_expiry?: string;
     visa_required?: boolean;
   };
+  onSaveSuccess?: () => void;
 }
 
-export default function PassportForm({ eventId, participantId, initialData }: PassportFormProps) {
+export default function PassportForm({
+  eventId,
+  participantId,
+  initialData,
+  onSaveSuccess,
+}: PassportFormProps) {
   const [formData, setFormData] = useState({
     passport_number: initialData.passport_number || '',
     passport_expiry: initialData.passport_expiry || '',
@@ -59,6 +65,8 @@ export default function PassportForm({ eventId, participantId, initialData }: Pa
     setLoading(false);
 
     if (result.success) {
+      onSaveSuccess?.();
+      router.refresh();
       router.push(`/${eventId}/register?step=flight`);
     } else {
       setError({ message: result.message });

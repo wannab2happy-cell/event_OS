@@ -12,9 +12,15 @@ interface BasicInfoFormProps {
   eventId: string;
   participantId: string;
   initialData: BasicInfo;
+  onSaveSuccess?: () => void;
 }
 
-export default function BasicInfoForm({ eventId, participantId, initialData }: BasicInfoFormProps) {
+export default function BasicInfoForm({
+  eventId,
+  participantId,
+  initialData,
+  onSaveSuccess,
+}: BasicInfoFormProps) {
   const [formData, setFormData] = useState<BasicInfo>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ field?: string; message: string } | null>(null);
@@ -44,6 +50,8 @@ export default function BasicInfoForm({ eventId, participantId, initialData }: B
     setLoading(false);
 
     if (result.success) {
+      onSaveSuccess?.();
+      router.refresh();
       router.push(`/${eventId}/register?step=passport`);
     } else {
       setError({ message: result.message });

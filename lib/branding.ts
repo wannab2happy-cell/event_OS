@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
-import type { Branding } from './types';
+import type { EventBranding } from './types';
 
-export const getBrandingStyles = (branding: Branding | null): CSSProperties => {
-  const b = branding || ({} as Branding);
+export const getBrandingStyles = (branding: EventBranding | null): CSSProperties => {
+  const b = branding || ({} as EventBranding);
 
   return {
     '--primary': b.primary_color || '#2563eb',

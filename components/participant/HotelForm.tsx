@@ -59,6 +59,7 @@ export default function HotelForm({
 
     if (result.success) {
       onSaveSuccess?.();
+      router.refresh();
       router.push(`/${eventId}/qr-pass`);
     } else {
       setError(result.message);

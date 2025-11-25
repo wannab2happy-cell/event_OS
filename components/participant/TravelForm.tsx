@@ -77,6 +77,7 @@ export default function TravelForm({
 
     if (result.success) {
       onSaveSuccess?.();
+      router.refresh();
       router.push(`/${eventId}/register?step=hotel`);
     } else {
       setError({ message: result.message });

@@ -2,14 +2,14 @@ import React from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { getBrandingStyles } from '@/lib/branding';
 
-export default async function ParticipantLayout({
-  children,
-  params,
-}: {
+type ParticipantLayoutProps = {
   children: React.ReactNode;
-  params: { eventId?: string };
-}) {
-  const eventId = params?.eventId;
+  params: Promise<{ eventId?: string }>;
+};
+
+export default async function ParticipantLayout({ children, params }: ParticipantLayoutProps) {
+  const resolvedParams = await params;
+  const eventId = resolvedParams?.eventId;
   let brandingStyles = {};
 
   if (eventId) {

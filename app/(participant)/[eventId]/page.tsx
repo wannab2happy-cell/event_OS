@@ -3,12 +3,17 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-interface ParticipantPageProps {
-  params: { eventId: string };
-}
+type ParticipantPageProps = {
+  params: Promise<{ eventId?: string }>;
+};
 
 export default async function ParticipantPage({ params }: ParticipantPageProps) {
-  const { eventId } = params;
+  const resolvedParams = await params;
+  const eventId = resolvedParams?.eventId;
+
+  if (!eventId) {
+    return notFound();
+  }
 
   const { data: event } = await supabase
     .from('events')

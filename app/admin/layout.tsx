@@ -5,7 +5,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import { assertAdminAuth } from '@/lib/auth';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const headersList = headers();
+  const headersList = await headers();
   const pathname = headersList.get('x-invoke-path') ?? headersList.get('next-url') ?? '';
   const isLoginRoute = pathname.startsWith('/admin/login');
 

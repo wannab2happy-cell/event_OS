@@ -1,15 +1,12 @@
 export type UUID = string;
 
-export type PageProps = {
-  params: { [key: string]: string | string[] };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
 export interface EventBranding {
   primary_color: string;
   secondary_color: string;
   kv_image_url: string;
   logo_image_url: string;
+  accent_color?: string;
+  font_family?: string;
 }
 
 export interface Event {

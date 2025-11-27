@@ -34,6 +34,7 @@ export function AdminParticipantDetail({ participant, eventId, eventTitle }: Adm
       const result = await updateParticipantConfirmation(eventId, participant.id, {
         ...adminData,
         participantEmail: participant.email,
+        participantName: participant.name,
         eventName: eventTitle,
       });
       setStatusMessage(result.message);

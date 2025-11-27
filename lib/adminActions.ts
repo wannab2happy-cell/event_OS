@@ -1,9 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import type { UUID, Participant, EventBranding } from '@/lib/types';
+import type { UUID } from '@/lib/types';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { sendConfirmationEmail, generateConfirmationEmailTemplate } from '@/lib/resend';
+import { sendConfirmationEmail } from '@/lib/resend';
 
 interface AdminConfirmationData {
   flight_ticket_no?: string;
@@ -11,6 +11,7 @@ interface AdminConfirmationData {
   is_travel_confirmed?: boolean;
   is_hotel_confirmed?: boolean;
   participantEmail: string;
+  participantName: string; // 이름 추가
   eventName: string;
 }
 
@@ -37,25 +38,11 @@ export async function updateParticipantConfirmation(
       return { success: false, message: '예약 확정 정보 업데이트에 실패했습니다.' };
     }
 
-    const shouldNotify =
-      (data.is_travel_confirmed && data.flight_ticket_no) ||
-      (data.is_hotel_confirmed && data.guest_confirmation_no);
-
-    if (shouldNotify && data.participantEmail) {
-      // 업데이트된 참가자 정보 가져오기
-      const { data: participantData, error: participantError } = await supabaseAdmin
-        .from('event_participants')
-        .select('*')
-        .eq('id', participantId)
-        .eq('event_id', eventId)
-        .single();
-
-      if (participantError || !participantData) {
-        console.error('Failed to fetch participant data:', participantError);
-        return { success: false, message: '참가자 정보를 가져오는데 실패했습니다.' };
-      }
-
-      const participant = participantData as Participant;
+    // 2. 상태가 확정됨으로 변경되었을 경우, 참가자에게 이메일 알림
+    if (data.is_travel_confirmed || data.is_hotel_confirmed) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
+      const participantLink = `${siteUrl}/${eventId}/qr-pass`;
+      const registerLink = `${siteUrl}/${eventId}/register`;
 
       // 이벤트 브랜딩 정보 가져오기
       const { data: brandingData } = await supabaseAdmin
@@ -64,34 +51,32 @@ export async function updateParticipantConfirmation(
         .eq('event_id', eventId)
         .single();
 
-      const branding: EventBranding | null = brandingData
-        ? {
-            primary_color: brandingData.primary_color || '#2563eb',
-            secondary_color: brandingData.secondary_color || '#f8f8f8',
-            kv_image_url: brandingData.kv_image_url || '',
-            logo_image_url: brandingData.logo_image_url || '',
-            accent_color: brandingData.accent_color,
-            font_family: brandingData.font_family,
-          }
-        : null;
+      const primaryColor = brandingData?.primary_color || '#2563eb';
+      const logoUrl = brandingData?.logo_image_url || null;
 
-      // 메일 템플릿 생성
-      const { subject, html } = generateConfirmationEmailTemplate({
-        participant,
+      const emailResult = await sendConfirmationEmail({
+        to: data.participantEmail,
+        participantName: data.participantName,
         eventName: data.eventName,
-        eventId,
-        branding,
+        eventLink: participantLink,
+        registerLink: registerLink,
+        flightTicketNo: data.flight_ticket_no ?? null,
+        guestConfirmationNo: data.guest_confirmation_no ?? null,
         isTravelConfirmed: data.is_travel_confirmed ?? false,
         isHotelConfirmed: data.is_hotel_confirmed ?? false,
+        logoUrl: logoUrl,
+        primaryColor: primaryColor,
       });
 
-      // 메일 발송
-      await sendConfirmationEmail({
-        to: data.participantEmail,
-        eventName: data.eventName,
-        message: html,
-        subject,
-      });
+      revalidatePath(`/admin/events/${eventId}/participants/${participantId}/edit`); // UI 즉시 갱신
+      revalidatePath(`/${eventId}/qr-pass`); // 참가자 페이지도 갱신
+
+      if (emailResult.success) {
+        return { success: true, message: '예약 확정 정보 저장 및 참가자에게 알림 메일 발송 완료.' };
+      } else {
+        // 이메일 전송 실패 시에도 DB 업데이트는 성공했으므로, 경고 메시지만 반환
+        return { success: true, message: `DB 업데이트 성공. 경고: 알림 메일 발송에 실패했습니다: ${emailResult.message}` };
+      }
     }
 
     revalidatePath(`/admin/events/${eventId}/participants`);

@@ -48,7 +48,6 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJ...` | Supabase Service Role Key |
 | `RESEND_API_KEY` | `re_...` | Resend API Key |
 | `RESEND_DOMAIN` | `resend.com` | Resend 도메인 (선택) |
-| `SLACK_ADMIN_WEBHOOK` | `https://...` | Slack Webhook (선택) |
 | `NODE_ENV` | `production` | Node 환경 |
 
 ### 환경 변수 설정 방법

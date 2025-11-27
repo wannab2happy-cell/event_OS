@@ -1,7 +1,7 @@
 'use server';
 
 import { supabase } from '@/lib/supabaseClient';
-import { sendAdminNotification } from '@/lib/notifications';
+import { createAdminNotification } from '@/lib/notifications';
 import type {
   BasicInfo,
   PassportData,
@@ -107,11 +107,12 @@ export async function saveTravelData(
       return { success: false, message: '항공 정보 업데이트에 실패했습니다.' };
     }
 
-    await sendAdminNotification(
-      eventId as UUID,
-      participantId as UUID,
-      '참가자의 항공 정보가 업데이트되었습니다.'
-    );
+    await createAdminNotification({
+      eventId: eventId as UUID,
+      participantId: participantId as UUID,
+      type: 'travel_updated',
+      message: '참가자의 항공 정보가 업데이트되었습니다.',
+    });
 
     return { success: true, message: '항공 정보가 성공적으로 저장되었습니다. 다음은 호텔 정보입니다.' };
   } catch (error) {
@@ -144,11 +145,12 @@ export async function saveHotelData(
       return { success: false, message: '호텔 정보 업데이트에 실패했습니다.' };
     }
 
-    await sendAdminNotification(
-      eventId as UUID,
-      participantId as UUID,
-      '참가자의 호텔 정보가 업데이트되어 등록이 완료되었습니다.'
-    );
+    await createAdminNotification({
+      eventId: eventId as UUID,
+      participantId: participantId as UUID,
+      type: 'hotel_completed',
+      message: '참가자의 호텔 정보가 업데이트되어 등록이 완료되었습니다.',
+    });
 
     return { success: true, message: '호텔 정보 등록이 완료되었습니다. 등록이 최종 완료되었습니다!' };
   } catch (error) {

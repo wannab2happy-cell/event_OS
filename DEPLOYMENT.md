@@ -11,13 +11,11 @@ Admin 기능과 메일 발송 로직은 서버 측에서만 접근해야 하는 
 | 1 | `SUPABASE_SERVICE_ROLE_KEY` | Admin 대시보드에서 RLS를 우회하여 모든 참가자 데이터 조회 및 수정 | ✅ 서버 전용 | 필수 | ☐ |
 | 2 | `RESEND_API_KEY` | 확정 메일 및 Magic Link 발송 | ✅ 서버 전용 | 필수 | ☐ |
 | 3 | `RESEND_DOMAIN` | Resend API 사용 시 발신 도메인 | ✅ 서버 전용 | 선택* | ☐ |
-| 4 | `SLACK_ADMIN_WEBHOOK` | 참가자 등록/수정 시 관리자 알림 전송 | ✅ 서버 전용 | 선택** | ☐ |
-| 5 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL | 🌎 Public | 필수 | ☐ |
-| 6 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Public Key | 🌎 Public | 필수 | ☐ |
+| 4 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL | 🌎 Public | 필수 | ☐ |
+| 5 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Public Key | 🌎 Public | 필수 | ☐ |
 | 7 | `NEXT_PUBLIC_SITE_URL` | 사이트 기본 URL (이메일 링크용) | 🌎 Public | 필수 | ☐ |
 
 \* `RESEND_DOMAIN`이 없으면 기본 도메인(`onboarding@resend.dev`) 사용  
-\** `SLACK_ADMIN_WEBHOOK`이 없으면 알림 기능 비활성화
 
 ### 환경 변수 값 확인 방법
 
@@ -37,9 +35,6 @@ Admin 기능과 메일 발송 로직은 서버 측에서만 접근해야 하는 
 - Production: `https://events.anders.kr` (커스텀 도메인)
 - 또는 Vercel 기본 도메인: `https://[your-vercel-domain].vercel.app`
 
-#### Slack 값 확인 (선택)
-1. Slack → Apps → Incoming Webhooks
-   - Webhook URL 생성 → `SLACK_ADMIN_WEBHOOK`
 
 ### ⚠️ 중요 보안 주의사항
 

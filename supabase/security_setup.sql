@@ -90,3 +90,26 @@ SELECT 1
     OR
     (public.get_claim('is_admin') = 'true')
 );
+
+-- ============================================
+-- 4. admin_notifications 테이블 및 RLS
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.admin_notifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id uuid REFERENCES public.events(id) ON DELETE CASCADE,
+  participant_id uuid REFERENCES public.event_participants(id) ON DELETE SET NULL,
+  type text NOT NULL,
+  message text NOT NULL,
+  is_read boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.admin_notifications ENABLE ROW LEVEL SECURITY;
+
+-- 서비스 롤 전용 액세스 (일반 클라이언트 접근 차단)
+DROP POLICY IF EXISTS "Admin notifications - service role full access" ON public.admin_notifications;
+CREATE POLICY "Admin notifications - service role full access"
+ON public.admin_notifications
+FOR ALL
+USING (auth.role() = 'service_role')
+WITH CHECK (auth.role() = 'service_role');

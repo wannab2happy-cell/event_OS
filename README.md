@@ -59,9 +59,6 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 RESEND_API_KEY=your_resend_api_key
 RESEND_DOMAIN=your_resend_domain
 
-# Slack (선택)
-SLACK_ADMIN_WEBHOOK=your_slack_webhook_url
-
 # Site URL
 NEXT_PUBLIC_SITE_URL=https://events.anders.kr
 # Local Development: http://localhost:3000

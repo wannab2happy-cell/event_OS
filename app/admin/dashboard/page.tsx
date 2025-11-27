@@ -2,11 +2,12 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Home, Users, CheckSquare, BarChart } from 'lucide-react';
+import { Home, Users, CheckSquare, BarChart, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { supabase } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { assertAdminAuth } from '@/lib/auth';
-import { Participant } from '@/lib/types';
+import { Participant, AdminNotification } from '@/lib/types';
 
 async function fetchDashboardData(eventId: string) {
   const [total, registered, checkedIn, completed] = await Promise.all([
@@ -44,6 +45,44 @@ async function fetchRecentParticipants(eventId: string): Promise<Participant[]> 
   return data as Participant[];
 }
 
+async function fetchAdminNotifications(eventId: string): Promise<AdminNotification[]> {
+  const { data, error } = await supabaseAdmin
+    .from('admin_notifications')
+    .select('*')
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (error || !data) {
+    console.error('Admin notifications fetch error:', error);
+    return [];
+  }
+
+  return data as AdminNotification[];
+}
+
+function formatNotificationLabel(type: string) {
+  switch (type) {
+    case 'travel_updated':
+      return '항공 정보';
+    case 'hotel_completed':
+      return '호텔 정보';
+    default:
+      return '알림';
+  }
+}
+
+function formatDateTime(value: string) {
+  try {
+    return new Intl.DateTimeFormat('ko-KR', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
 export default async function AdminDashboardPage() {
   await assertAdminAuth();
 
@@ -54,8 +93,11 @@ export default async function AdminDashboardPage() {
   }
 
   const { id: eventId, title: eventTitle } = eventData;
-  const metrics = await fetchDashboardData(eventId);
-  const recentParticipants = await fetchRecentParticipants(eventId);
+  const [metrics, recentParticipants, notifications] = await Promise.all([
+    fetchDashboardData(eventId),
+    fetchRecentParticipants(eventId),
+    fetchAdminNotifications(eventId),
+  ]);
 
   const metricCards = [
     { title: '총 초대 참가자 수', icon: Users, value: metrics.total, description: '전체 명단 기준' },
@@ -141,6 +183,42 @@ export default async function AdminDashboardPage() {
               전체 참가자 보기 &rarr;
             </Link>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center text-lg">
+            <Bell className="w-4 h-4 mr-2 text-blue-600" />
+            최근 알림
+          </CardTitle>
+          <CardDescription>참가자 정보 변경 내역이 자동으로 기록됩니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {notifications.length ? (
+            <ul className="space-y-4">
+              {notifications.map((notification) => (
+                <li
+                  key={notification.id}
+                  className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{notification.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {formatDateTime(notification.created_at)}
+                      </p>
+                    </div>
+                    <span className="inline-flex h-6 items-center rounded-full bg-blue-50 px-3 text-xs font-semibold text-blue-700">
+                      {formatNotificationLabel(notification.type)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">새로운 알림이 없습니다.</p>
+          )}
         </CardContent>
       </Card>
     </div>

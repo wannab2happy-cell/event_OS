@@ -1,25 +1,34 @@
 'use server';
 
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import type { UUID } from './types';
 
-export async function sendAdminNotification(eventId: UUID, participantId: UUID, message: string) {
-  const webhookUrl = process.env.SLACK_ADMIN_WEBHOOK;
+interface CreateAdminNotificationOptions {
+  eventId: UUID;
+  participantId?: UUID | null;
+  type: string;
+  message: string;
+}
 
-  if (!webhookUrl) {
-    console.warn('SLACK_ADMIN_WEBHOOK is not set. Admin notification disabled.');
-    return;
-  }
-
+export async function createAdminNotification({
+  eventId,
+  participantId = null,
+  type,
+  message,
+}: CreateAdminNotificationOptions) {
   try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: `[Event OS - ${String(eventId).slice(0, 8)}] ${message}\n참가자 ID: ${participantId}`,
-      }),
+    const { error } = await supabaseAdmin.from('admin_notifications').insert({
+      event_id: eventId,
+      participant_id: participantId,
+      type,
+      message,
     });
+
+    if (error) {
+      console.error('Failed to create admin notification:', error);
+    }
   } catch (error) {
-    console.error('Failed to send admin notification:', error);
+    console.error('Unexpected error while creating admin notification:', error);
   }
 }
 

@@ -98,3 +98,13 @@ export interface HotelDataExtended {
   sharing_details: string;
 }
 
+export interface AdminNotification {
+  id: UUID;
+  event_id: UUID;
+  participant_id: UUID | null;
+  type: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+

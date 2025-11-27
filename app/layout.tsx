@@ -5,6 +5,11 @@ import { ToasterProvider } from '@/components/providers/ToasterProvider';
 export const metadata: Metadata = {
   title: 'event_OS',
   description: 'Anders Event Management System',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

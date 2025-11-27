@@ -3,22 +3,13 @@ import { notFound, redirect } from 'next/navigation';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { QrCode, CheckCircle, Plane, Hotel, Calendar, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import QRCodeDisplay from '@/components/participant/QRCodeDisplay';
 import type { Participant } from '@/lib/types';
 import { generateQrContent } from '@/lib/qr';
 
 type QrPassPageProps = {
   params: Promise<{ eventId?: string }>;
 };
-
-const QRCodeDisplay = ({ value }: { value: string }) => (
-  <div className="flex items-center justify-center p-4 bg-white rounded-xl shadow-inner">
-    <div className="w-48 h-48 bg-gray-900 flex items-center justify-center text-white text-xs rounded-lg p-2 text-center">
-      QR CODE
-      <br />
-      {value.substring(0, 30)}...
-    </div>
-  </div>
-);
 
 export default async function QrPassPage({ params }: QrPassPageProps) {
   const resolvedParams = await params;
@@ -64,56 +55,88 @@ export default async function QrPassPage({ params }: QrPassPageProps) {
   const hasHotelDates = participant.hotel_check_in && participant.hotel_check_out;
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 min-h-screen">
-      <h1 className="text-3xl font-bold mb-1 text-gray-900">현장 체크인 PASS</h1>
-      <p className="text-gray-500 mb-8">행사 당일, 이 페이지를 보여주세요.</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* 모바일 퍼스트: 작은 화면에서도 최적화 */}
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-2xl">
+        {/* 헤더: 명확한 타이포그래피와 충분한 여백 */}
+        <div className="mb-8 sm:mb-12 space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            현장 체크인 PASS
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            행사 당일, 이 페이지를 보여주세요.
+          </p>
+        </div>
 
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="text-center shadow-2xl border-2 border-gray-100">
-          <CardHeader className="bg-gray-50 border-b">
-            <CardTitle className="flex justify-center items-center text-2xl text-blue-600">
-              <QrCode className="w-6 h-6 mr-2" />
+        {/* 메인 QR 카드: 고대비, 충분한 여백 */}
+        <Card className="text-center shadow-lg border border-gray-200 mb-6 sm:mb-8">
+          <CardHeader className="bg-white border-b border-gray-100 px-6 py-6 sm:px-8 sm:py-8">
+            <CardTitle className="flex justify-center items-center text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              <QrCode className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-blue-600" />
               {participant.name} 님의 패스
             </CardTitle>
-            <CardDescription>Event: {eventId.slice(0, 8).toUpperCase()}</CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-gray-500 mt-2">
+              Event: {eventId.slice(0, 8).toUpperCase()}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-8 space-y-6">
+          <CardContent className="p-6 sm:p-8 sm:px-10 space-y-8">
+            {/* QR 코드: 고대비, 충분한 크기 */}
             <QRCodeDisplay value={qrContent} />
 
-            <div className="space-y-2">
-              <p className="text-lg font-semibold text-gray-800">
-                {participant.name} ({participant.company || '소속 미입력'})
+            {/* 참가자 정보: 명확한 타이포그래피 */}
+            <div className="space-y-3 pt-4 border-t border-gray-100">
+              <p className="text-base sm:text-lg font-semibold text-gray-900 leading-tight">
+                {participant.name}
               </p>
-              <p className="text-sm text-gray-500">{participant.email}</p>
+              {participant.company && (
+                <p className="text-sm sm:text-base text-gray-600">
+                  {participant.company}
+                </p>
+              )}
+              <p className="text-xs sm:text-sm text-gray-500">{participant.email}</p>
             </div>
 
+            {/* 상태 표시: 시스템 상태 가시성 (닐슨 원칙) */}
             <div
-              className={`p-3 rounded-lg flex items-center justify-center ${
-                isComplete ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+              className={`p-4 rounded-xl flex items-center justify-center border-2 ${
+                isComplete
+                  ? 'bg-green-50 border-green-200 text-green-800'
+                  : 'bg-amber-50 border-amber-200 text-amber-800'
               }`}
+              role="status"
+              aria-live="polite"
             >
-              <CheckCircle className="w-5 h-5 mr-2" />
-              <span className="font-medium">
-                {isComplete ? '참가 등록 완료 및 정보 완성' : '정보 입력 진행 중 (현장 체크인 가능)'}
+              <CheckCircle
+                className={`w-5 h-5 mr-2 flex-shrink-0 ${
+                  isComplete ? 'text-green-600' : 'text-amber-600'
+                }`}
+              />
+              <span className="text-sm sm:text-base font-medium text-center">
+                {isComplete
+                  ? '참가 등록 완료 및 정보 완성'
+                  : '정보 입력 진행 중 (현장 체크인 가능)'}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* 항공 확정 정보 */}
+        {/* 항공 확정 정보: 모바일 최적화, 충분한 여백 */}
         {hasTravelInfo && (
-          <Card className="shadow-lg border-2 border-blue-100">
-            <CardHeader className="bg-blue-50 border-b">
-              <CardTitle className="flex items-center text-xl text-blue-700">
-                <Plane className="w-5 h-5 mr-2" />
+          <Card className="shadow-md border border-blue-200 mb-6 sm:mb-8">
+            <CardHeader className="bg-blue-50 border-b border-blue-100 px-6 py-5">
+              <CardTitle className="flex items-center text-lg sm:text-xl font-bold text-blue-900">
+                <Plane className="w-5 h-5 mr-2 flex-shrink-0" />
                 항공 예약 확정 정보
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-green-800">항공권 번호</span>
-                  <span className="text-lg font-bold text-green-900">{participant.flight_ticket_no}</span>
+            <CardContent className="p-6 sm:p-8 space-y-5">
+              {/* 항공권 번호: 고대비, 명확한 타이포그래피 */}
+              <div className="bg-green-50 border-2 border-green-300 rounded-xl p-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <span className="text-sm sm:text-base font-semibold text-green-900">항공권 번호</span>
+                  <span className="text-xl sm:text-2xl font-bold text-green-900 tracking-tight">
+                    {participant.flight_ticket_no}
+                  </span>
                 </div>
               </div>
 
@@ -172,38 +195,41 @@ export default async function QrPassPage({ params }: QrPassPageProps) {
           </Card>
         )}
 
-        {/* 호텔 확정 정보 */}
+        {/* 호텔 확정 정보: 모바일 최적화, 충분한 여백 */}
         {hasHotelInfo && (
-          <Card className="shadow-lg border-2 border-purple-100">
-            <CardHeader className="bg-purple-50 border-b">
-              <CardTitle className="flex items-center text-xl text-purple-700">
-                <Hotel className="w-5 h-5 mr-2" />
+          <Card className="shadow-md border border-purple-200 mb-6 sm:mb-8">
+            <CardHeader className="bg-purple-50 border-b border-purple-100 px-6 py-5">
+              <CardTitle className="flex items-center text-lg sm:text-xl font-bold text-purple-900">
+                <Hotel className="w-5 h-5 mr-2 flex-shrink-0" />
                 호텔 예약 확정 정보
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-green-800">예약 확인 번호</span>
-                  <span className="text-lg font-bold text-green-900">{participant.guest_confirmation_no}</span>
+            <CardContent className="p-6 sm:p-8 space-y-5">
+              {/* 예약 확인 번호: 고대비, 명확한 타이포그래피 */}
+              <div className="bg-green-50 border-2 border-green-300 rounded-xl p-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <span className="text-sm sm:text-base font-semibold text-green-900">예약 확인 번호</span>
+                  <span className="text-xl sm:text-2xl font-bold text-green-900 tracking-tight">
+                    {participant.guest_confirmation_no}
+                  </span>
                 </div>
               </div>
 
               {hasHotelDates && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex items-center text-blue-700 font-semibold mb-2">
-                      <Calendar className="w-4 h-4 mr-2" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="border-l-4 border-blue-500 pl-5 py-3 bg-blue-50 rounded-r-lg">
+                    <div className="flex items-center text-blue-900 font-semibold mb-2 text-sm sm:text-base">
+                      <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
                       체크인
                     </div>
-                    <p className="text-lg font-medium">{participant.hotel_check_in}</p>
+                    <p className="text-base sm:text-lg font-bold text-gray-900">{participant.hotel_check_in}</p>
                   </div>
-                  <div className="border-l-4 border-orange-500 pl-4">
-                    <div className="flex items-center text-orange-700 font-semibold mb-2">
-                      <Calendar className="w-4 h-4 mr-2" />
+                  <div className="border-l-4 border-orange-500 pl-5 py-3 bg-orange-50 rounded-r-lg">
+                    <div className="flex items-center text-orange-900 font-semibold mb-2 text-sm sm:text-base">
+                      <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
                       체크아웃
                     </div>
-                    <p className="text-lg font-medium">{participant.hotel_check_out}</p>
+                    <p className="text-base sm:text-lg font-bold text-gray-900">{participant.hotel_check_out}</p>
                   </div>
                 </div>
               )}

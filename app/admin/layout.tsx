@@ -6,8 +6,17 @@ import { assertAdminAuth } from '@/lib/auth';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
-  const pathname = headersList.get('x-invoke-path') ?? headersList.get('next-url') ?? '';
-  const isLoginRoute = pathname.startsWith('/admin/login');
+  const pathname =
+    headersList.get('x-pathname') ??
+    headersList.get('x-matched-path') ??
+    headersList.get('x-invoke-path') ??
+    headersList.get('next-url') ??
+    '';
+
+  // next-url 등은 전체 URL일 수 있으므로 호스트 부분 제거
+  const normalizedPath = pathname.replace(/^https?:\/\/[^/]+/, '');
+  const isLoginRoute =
+    normalizedPath === '/admin/login' || normalizedPath.startsWith('/admin/login?');
 
   if (isLoginRoute) {
     return <>{children}</>;

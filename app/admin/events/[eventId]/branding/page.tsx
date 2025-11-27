@@ -1,5 +1,7 @@
 'use server';
 
+export const dynamic = 'force-dynamic';
+
 import { notFound } from 'next/navigation';
 import EventBrandingClient from '@/components/admin/EventBrandingClient';
 

@@ -1,9 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import type { UUID } from '@/lib/types';
+import type { UUID, Participant, EventBranding } from '@/lib/types';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { sendConfirmationEmail } from '@/lib/resend';
+import { sendConfirmationEmail, generateConfirmationEmailTemplate } from '@/lib/resend';
 
 interface AdminConfirmationData {
   flight_ticket_no?: string;
@@ -42,21 +42,55 @@ export async function updateParticipantConfirmation(
       (data.is_hotel_confirmed && data.guest_confirmation_no);
 
     if (shouldNotify && data.participantEmail) {
-      const passLink = `${process.env.NEXT_PUBLIC_SITE_URL}/${eventId}/qr-pass`;
-      const updates: string[] = [];
-      if (data.is_travel_confirmed) updates.push('항공 예약');
-      if (data.is_hotel_confirmed) updates.push('호텔 예약');
+      // 업데이트된 참가자 정보 가져오기
+      const { data: participantData, error: participantError } = await supabaseAdmin
+        .from('event_participants')
+        .select('*')
+        .eq('id', participantId)
+        .eq('event_id', eventId)
+        .single();
 
+      if (participantError || !participantData) {
+        console.error('Failed to fetch participant data:', participantError);
+        return { success: false, message: '참가자 정보를 가져오는데 실패했습니다.' };
+      }
+
+      const participant = participantData as Participant;
+
+      // 이벤트 브랜딩 정보 가져오기
+      const { data: brandingData } = await supabaseAdmin
+        .from('event_branding')
+        .select('*')
+        .eq('event_id', eventId)
+        .single();
+
+      const branding: EventBranding | null = brandingData
+        ? {
+            primary_color: brandingData.primary_color || '#2563eb',
+            secondary_color: brandingData.secondary_color || '#f8f8f8',
+            kv_image_url: brandingData.kv_image_url || '',
+            logo_image_url: brandingData.logo_image_url || '',
+            accent_color: brandingData.accent_color,
+            font_family: brandingData.font_family,
+          }
+        : null;
+
+      // 메일 템플릿 생성
+      const { subject, html } = generateConfirmationEmailTemplate({
+        participant,
+        eventName: data.eventName,
+        eventId,
+        branding,
+        isTravelConfirmed: data.is_travel_confirmed ?? false,
+        isHotelConfirmed: data.is_hotel_confirmed ?? false,
+      });
+
+      // 메일 발송
       await sendConfirmationEmail({
         to: data.participantEmail,
         eventName: data.eventName,
-        message: `
-          <p>안녕하세요.</p>
-          <p><strong>${data.eventName}</strong> 행사에 대한 ${updates.join(
-            ' 및 '
-          )} 정보가 업데이트되었습니다.</p>
-          <p>자세한 내용은 <a href="${passLink}">QR PASS 페이지</a>에서 확인해주세요.</p>
-        `,
+        message: html,
+        subject,
       });
     }
 

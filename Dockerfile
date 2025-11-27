@@ -33,6 +33,10 @@ COPY . .
 # 환경 변수 설정 (빌드 시 필요)
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Render.com 배포를 위한 standalone 출력 활성화
+# next.config.ts에 output: 'standalone' 추가
+RUN sed -i "s/reactStrictMode: true,/reactStrictMode: true,\n  output: 'standalone',/" next.config.ts
+
 # 프로덕션 빌드 실행
 RUN npm run build
 

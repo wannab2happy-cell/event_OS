@@ -10,12 +10,25 @@ import { Mail, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 
 export default function ParticipantLoginPage() {
   const params = useParams();
-  const eventId = params?.eventId as string;
+  const eventId = (params?.eventId as string) || '';
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // eventId가 없으면 에러 표시
+  if (!eventId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600 font-medium">이벤트 ID가 올바르지 않습니다.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const supabase = createClientComponentClient({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -34,23 +47,41 @@ export default function ParticipantLoginPage() {
       return;
     }
 
-    // Magic Link 발송
-    const redirectTo = `${window.location.origin}/${eventId}/register`;
-    const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectTo,
-      },
-    });
-
-    if (magicLinkError) {
-      setError(magicLinkError.message || 'Magic Link 발송에 실패했습니다.');
+    // 이메일 형식 검증 (오류 방지)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('올바른 이메일 형식을 입력해주세요.');
       setLoading(false);
       return;
     }
 
-    setSuccess(true);
-    setLoading(false);
+    try {
+      // Magic Link 발송
+      const redirectTo =
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/${eventId}/register`
+          : `https://events.anders.kr/${eventId}/register`;
+
+      const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (magicLinkError) {
+        setError(magicLinkError.message || 'Magic Link 발송에 실패했습니다.');
+        setLoading(false);
+        return;
+      }
+
+      setSuccess(true);
+      setLoading(false);
+    } catch (err) {
+      console.error('Magic Link 발송 오류:', err);
+      setError('예기치 않은 오류가 발생했습니다. 다시 시도해주세요.');
+      setLoading(false);
+    }
   };
 
   return (

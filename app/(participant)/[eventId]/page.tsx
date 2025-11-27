@@ -92,7 +92,7 @@ export default async function ParticipantPage({ params }: ParticipantPageProps) 
             <p className="text-gray-600 text-sm">항공, 호텔, 식단 정보를 입력해야 등록이 완료됩니다.</p>
           </div>
           <Link
-            href={`/${eventId}/register`}
+            href={`/${eventId}/login`}
             className="px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-lg shadow-lg hover:opacity-90 transition transform hover:-translate-y-0.5"
           >
             등록 정보 입력하기 &rarr;

@@ -4,29 +4,78 @@
 
 Admin 기능과 메일 발송 로직은 서버 측에서만 접근해야 하는 민감한 키를 사용합니다. Vercel 대시보드에 다음 6가지 키를 정확히 입력해야 합니다.
 
-### 필수 환경 변수
+### 필수 환경 변수 체크리스트
 
-| 변수 이름 | 사용 용도 | 노출 범위 |
-|---------|---------|---------|
-| `SUPABASE_SERVICE_ROLE_KEY` | Admin 대시보드에서 RLS를 우회하여 모든 참가자 데이터 조회 및 수정 | ✅ Production / Preview / Development (서버 전용) |
-| `RESEND_API_KEY` | 확정 메일 및 Magic Link 발송 | ✅ Production / Preview / Development (서버 전용) |
-| `RESEND_DOMAIN` | Resend API 사용 시 발신 도메인 | ✅ Production / Preview / Development (서버 전용) |
-| `SLACK_ADMIN_WEBHOOK` | 참가자 등록/수정 시 관리자 알림 전송 | ✅ Production / Preview / Development (서버 전용) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL | 🌎 Public (클라이언트 노출) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Public Key | 🌎 Public (클라이언트 노출) |
+| # | 변수 이름 | 사용 용도 | 노출 범위 | 필수 여부 | 확인 |
+|---|---------|---------|---------|---------|------|
+| 1 | `SUPABASE_SERVICE_ROLE_KEY` | Admin 대시보드에서 RLS를 우회하여 모든 참가자 데이터 조회 및 수정 | ✅ 서버 전용 | 필수 | ☐ |
+| 2 | `RESEND_API_KEY` | 확정 메일 및 Magic Link 발송 | ✅ 서버 전용 | 필수 | ☐ |
+| 3 | `RESEND_DOMAIN` | Resend API 사용 시 발신 도메인 | ✅ 서버 전용 | 선택* | ☐ |
+| 4 | `SLACK_ADMIN_WEBHOOK` | 참가자 등록/수정 시 관리자 알림 전송 | ✅ 서버 전용 | 선택** | ☐ |
+| 5 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL | 🌎 Public | 필수 | ☐ |
+| 6 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Public Key | 🌎 Public | 필수 | ☐ |
+| 7 | `NEXT_PUBLIC_SITE_URL` | 사이트 기본 URL (이메일 링크용) | 🌎 Public | 필수 | ☐ |
+
+\* `RESEND_DOMAIN`이 없으면 기본 도메인(`onboarding@resend.dev`) 사용  
+\** `SLACK_ADMIN_WEBHOOK`이 없으면 알림 기능 비활성화
+
+### 환경 변수 값 확인 방법
+
+#### Supabase 값 확인
+1. Supabase 대시보드 → Project Settings → API
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (⚠️ 절대 노출 금지)
+
+#### Resend 값 확인
+1. Resend 대시보드 → API Keys
+   - API Key 생성 → `RESEND_API_KEY`
+2. Resend 대시보드 → Domains
+   - 도메인 추가 후 → `RESEND_DOMAIN` (예: `resend.com`)
+
+#### Site URL 설정
+- Production: `https://events.anders.kr` (커스텀 도메인)
+- 또는 Vercel 기본 도메인: `https://[your-vercel-domain].vercel.app`
+
+#### Slack 값 확인 (선택)
+1. Slack → Apps → Incoming Webhooks
+   - Webhook URL 생성 → `SLACK_ADMIN_WEBHOOK`
 
 ### ⚠️ 중요 보안 주의사항
 
 - `NEXT_PUBLIC_` 접두사가 **없는** 키들은 절대 클라이언트 코드나 Vercel의 Public 환경 변수에 노출되어서는 안 됩니다.
 - 서버 전용 키들은 **반드시** Production, Preview, Development 환경 모두에 설정해야 합니다.
+- `SUPABASE_SERVICE_ROLE_KEY`는 RLS를 우회하므로 절대 클라이언트에 노출되면 안 됩니다.
 
 ### Vercel 환경 변수 설정 방법
 
-1. Vercel 대시보드 접속: https://vercel.com/anders-projects-2d7c87b2/event-os/settings/environment-variables
-2. 각 환경 변수를 추가:
-   - Key: 환경 변수 이름
+1. **Vercel 대시보드 접속**
+   - https://vercel.com/anders-projects-2d7c87b2/event-os/settings/environment-variables
+   - 또는: 프로젝트 → Settings → Environment Variables
+
+2. **각 환경 변수 추가**
+   - "Add New" 버튼 클릭
+   - Key: 환경 변수 이름 (위 표 참고)
    - Value: 실제 값
-   - Environment: Production, Preview, Development 모두 선택
+   - Environment: **Production, Preview, Development 모두 선택** ✅
+
+3. **설정 확인**
+   - 모든 환경 변수가 3개 환경 모두에 설정되었는지 확인
+   - 변수 이름 오타 확인
+   - 값이 올바르게 입력되었는지 확인
+
+### 환경 변수 설정 확인 체크리스트
+
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` - Production, Preview, Development 모두 설정됨
+- [ ] `RESEND_API_KEY` - Production, Preview, Development 모두 설정됨
+- [ ] `RESEND_DOMAIN` - Production, Preview, Development 모두 설정됨 (또는 기본값 사용)
+- [ ] `SLACK_ADMIN_WEBHOOK` - Production, Preview, Development 모두 설정됨 (또는 선택사항)
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` - Production, Preview, Development 모두 설정됨
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Production, Preview, Development 모두 설정됨
+- [ ] `NEXT_PUBLIC_SITE_URL` - Production: `https://events.anders.kr` 설정됨
+- [ ] 모든 서버 전용 키가 Public 환경 변수로 설정되지 않았는지 확인
+- [ ] 배포 후 환경 변수가 정상적으로 로드되는지 확인
+- [ ] Supabase Redirect URL에 `https://events.anders.kr/**` 추가됨
 
 ## 2. 📝 배포 최적화 설정
 

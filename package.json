@@ -1,7 +1,7 @@
 {
   "name": "event-os",
   "version": "1.0.0",
-  "description": "Zero-cost event management stack",
+  "description": "Anders event management stack",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

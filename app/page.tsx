@@ -6,7 +6,7 @@ export default function HomePage() {
           event_OS v1.0
         </p>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
-          Zero-Cost Event Operating System
+          Anders Event Operating System
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
           관리자(Admin)와 참가자(Participant)를 위한 안전한 멀티테넌트 구조를

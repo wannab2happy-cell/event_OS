@@ -4,7 +4,7 @@ import { ToasterProvider } from '@/components/providers/ToasterProvider';
 
 export const metadata: Metadata = {
   title: 'event_OS',
-  description: 'Zero-Cost Event Management System',
+  description: 'Anders Event Management System',
 };
 
 export default function RootLayout({

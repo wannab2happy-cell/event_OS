@@ -15,3 +15,33 @@ body {
   background-color: #ffffff;
 }
 
+/* 전역 스타일 통일 */
+@layer components {
+  /* 카드 간격 통일 */
+  .card-spacing {
+    @apply space-y-6;
+  }
+  
+  /* 섹션 패딩 통일 */
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+  
+  /* 폰트 Weight 통일 */
+  .font-heading {
+    @apply font-bold;
+  }
+  
+  .font-body {
+    @apply font-normal;
+  }
+  
+  .font-medium-text {
+    @apply font-medium;
+  }
+  
+  .font-semibold-text {
+    @apply font-semibold;
+  }
+}
+

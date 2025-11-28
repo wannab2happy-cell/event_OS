@@ -3,9 +3,10 @@ export const dynamic = 'force-dynamic';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { QrCode, CheckCircle, Plane, Hotel, Calendar, MapPin, Clock } from 'lucide-react';
+import { QrCode, CheckCircle, Plane, Hotel, Calendar, MapPin, Clock, Crown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import QRCodeDisplay from '@/components/participant/QRCodeDisplay';
+import PushNotificationRegister from '@/components/participant/PushNotificationRegister';
 import type { Participant } from '@/lib/types';
 import { generateQrContent } from '@/lib/qr';
 
@@ -46,6 +47,10 @@ export default async function QrPassPage({ params }: QrPassPageProps) {
   const participant = participantData as Participant;
   const qrContent = generateQrContent(eventId, participant.id);
   const isComplete = participant.status === 'completed';
+  
+  // VIP 체크
+  const isVIP = (participant as any).vip_level > 0;
+  const vipLevel = (participant as any).vip_level || 0;
 
   // 항공 확정 정보
   const hasTravelInfo = participant.is_travel_confirmed && participant.flight_ticket_no;
@@ -58,6 +63,9 @@ export default async function QrPassPage({ params }: QrPassPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Push 알림 자동 등록 */}
+      <PushNotificationRegister eventId={eventId} participantId={participant.id} />
+      
       {/* 모바일 퍼스트: 작은 화면에서도 최적화 */}
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-2xl">
         {/* 헤더: 명확한 타이포그래피와 충분한 여백 */}
@@ -71,14 +79,53 @@ export default async function QrPassPage({ params }: QrPassPageProps) {
         </div>
 
         {/* 메인 QR 카드: 고대비, 충분한 여백 */}
-        <Card className="text-center shadow-lg border border-gray-200 mb-6 sm:mb-8">
-          <CardHeader className="bg-white border-b border-gray-100 px-6 py-6 sm:px-8 sm:py-8">
-            <CardTitle className="flex justify-center items-center text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              <QrCode className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-blue-600" />
+        <Card
+          className={`text-center shadow-lg mb-6 sm:mb-8 ${
+            isVIP
+              ? 'border-2 border-[#FFD700] bg-gradient-to-br from-amber-50/50 to-yellow-50/50'
+              : 'border border-gray-200'
+          }`}
+          style={
+            isVIP
+              ? {
+                  borderColor: '#FFD700',
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                }
+              : {}
+          }
+        >
+          <CardHeader
+            className={`border-b px-6 py-6 sm:px-8 sm:py-8 ${
+              isVIP ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200' : 'bg-white border-gray-100'
+            }`}
+          >
+            {isVIP && (
+              <div className="mb-3 flex justify-center">
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold"
+                  style={{
+                    backgroundColor: '#FFD700',
+                    color: '#B8860B',
+                  }}
+                >
+                  <Crown className="w-4 h-4" />
+                  VIP Access
+                </span>
+              </div>
+            )}
+            <CardTitle
+              className={`flex justify-center items-center text-xl sm:text-2xl font-bold mb-2 ${
+                isVIP ? 'text-[#B8860B]' : 'text-gray-900'
+              }`}
+            >
+              <QrCode
+                className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 ${isVIP ? 'text-[#FFD700]' : 'text-blue-600'}`}
+              />
               {participant.name} 님의 패스
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm text-gray-500 mt-2">
+            <CardDescription className={`text-xs sm:text-sm mt-2 ${isVIP ? 'text-amber-700' : 'text-gray-500'}`}>
               Event: {eventId.slice(0, 8).toUpperCase()}
+              {isVIP && ` • VIP Level ${vipLevel}`}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 sm:p-8 sm:px-10 space-y-8">

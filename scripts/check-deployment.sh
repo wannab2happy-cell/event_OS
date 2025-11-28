@@ -92,3 +92,4 @@ echo "2. Supabase Redirect URL 설정 확인"
 echo "3. Storage 버킷 Public 설정 확인"
 echo "4. git push origin main 으로 배포"
 
+

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Mail, Settings, Table, Zap } from 'lucide-react';
+import { LayoutDashboard, Users, Mail, Settings, Table, Zap, QrCode, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
@@ -11,17 +11,38 @@ const adminNavItems = [
   { href: '/admin/events/EVENT_ID/participants', icon: Users, label: '참가자' },
   { href: '/admin/events/EVENT_ID/mail', icon: Mail, label: '메일 센터' },
   { href: '/admin/events/EVENT_ID/tables', icon: Table, label: '테이블 배정' },
+  { href: '/admin/events/EVENT_ID/scanner', icon: QrCode, label: '체크인 스캐너' },
+  { href: '/admin/events/EVENT_ID/broadcast', icon: Megaphone, label: 'Push 알림' },
   { href: '/admin/settings/zero-cost', icon: Settings, label: 'Zero-Cost 가이드' },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const eventIdPlaceholder = 'v1_default';
+  
+  // pathname에서 eventId 추출 (예: /admin/events/abc123/participants -> abc123)
+  const eventIdMatch = pathname.match(/\/admin\/events\/([^/]+)/);
+  const currentEventId = eventIdMatch ? eventIdMatch[1] : null;
+  
+  // eventId가 없으면 첫 번째 이벤트를 가져오는 대신, 이벤트 관리 페이지로 링크
+  // 또는 기본값 사용 (향후 첫 이벤트 자동 선택 기능 추가 가능)
+  const eventIdPlaceholder = currentEventId || 'EVENT_ID';
 
-  const navItems = adminNavItems.map((item) => ({
-    ...item,
-    href: item.href.replace('EVENT_ID', eventIdPlaceholder),
-  }));
+  const navItems = adminNavItems.map((item) => {
+    // EVENT_ID가 있으면 현재 eventId로 교체, 없으면 링크를 비활성화하거나 이벤트 선택 페이지로
+    let href = item.href;
+    if (href.includes('EVENT_ID')) {
+      if (currentEventId) {
+        href = href.replace('EVENT_ID', currentEventId);
+      } else {
+        // eventId가 없으면 이벤트 관리 페이지로
+        href = '/admin/events';
+      }
+    }
+    return {
+      ...item,
+      href,
+    };
+  });
 
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200">

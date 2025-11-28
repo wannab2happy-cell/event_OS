@@ -102,3 +102,4 @@ Write-Host "2. Supabase Redirect URL 설정 확인"
 Write-Host "3. Storage 버킷 Public 설정 확인"
 Write-Host "4. git push origin main 으로 배포"
 
+

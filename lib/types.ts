@@ -9,6 +9,12 @@ export interface EventBranding {
   font_family?: string;
 }
 
+export interface ScheduleItem {
+  time: string;
+  title: string;
+  description?: string;
+}
+
 export interface Event {
   id: UUID;
   title: string;
@@ -16,6 +22,16 @@ export interface Event {
   start_date: string;
   end_date: string;
   status: 'planning' | 'active' | 'archived';
+  schedule?: ScheduleItem[] | null;
+  hero_tagline?: string | null;
+  primary_color?: string | null;
+  secondary_color?: string | null;
+  venue_name?: string | null;
+  venue_address?: string | null;
+  venue_latitude?: number | null;
+  venue_longitude?: number | null;
+  location_name?: string | null;
+  location_detail?: string | null;
 }
 
 export type ParticipantStatus = 'invited' | 'registered' | 'completed' | 'checked_in';
@@ -61,6 +77,11 @@ export interface Participant {
   num_adults: number | null;
   is_travel_confirmed: boolean;
   is_hotel_confirmed: boolean;
+  vip_level?: number | null;
+  guest_of?: UUID | null;
+  vip_note?: string | null;
+  is_checked_in?: boolean | null;
+  checked_in_at?: string | null;
 }
 
 export interface BasicInfo {

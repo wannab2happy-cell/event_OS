@@ -174,3 +174,4 @@ https://events.anders.kr/*/qr-pass
 - [ ] 로그인 기능 테스트 완료
 - [ ] 이메일 링크 테스트 완료
 
+

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { createOperationLog } from '@/actions/operations/createLog';
 
 // 타입 정의
 interface AddVIPInput {
@@ -88,6 +89,26 @@ export async function addVIPAction(input: unknown): Promise<{ success: boolean; 
     if (updateError) {
       throw new Error(`VIP 설정에 실패했습니다: ${updateError.message}`);
     }
+
+    // 참가자 정보 가져오기 (로그용)
+    const { data: participantInfo } = await supabaseAdmin
+      .from('event_participants')
+      .select('name')
+      .eq('id', participantId)
+      .single();
+
+    // 운영 로그 기록
+    await createOperationLog({
+      eventId,
+      type: 'vip_update',
+      message: `${participantInfo?.name || '참가자'} 님 VIP Level ${vipLevel} 설정`,
+      actor: 'admin',
+      metadata: {
+        participant_id: participantId,
+        vip_level: vipLevel,
+        guest_of: guestOf,
+      },
+    });
 
     // 페이지 재검증
     revalidatePath(`/admin/events/${eventId}/vip`);

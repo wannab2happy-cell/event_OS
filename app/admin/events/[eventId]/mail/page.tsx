@@ -13,7 +13,7 @@ type MailPageProps = {
 async function fetchEvent(eventId: string) {
   const { data, error } = await supabaseAdmin
     .from('events')
-    .select('id, title, code')
+    .select('id, title, code, start_date, end_date, venue_name, venue_address, hero_tagline, primary_color')
     .eq('id', eventId)
     .single();
 
@@ -70,7 +70,14 @@ export default async function MailPage({ params }: MailPageProps) {
       </div>
 
       {/* 메일 센터 클라이언트 컴포넌트 */}
-      <MailCenterClient eventId={eventId} eventTitle={event.title} />
+      <MailCenterClient
+        eventId={eventId}
+        eventTitle={event.title}
+        eventDates={event.start_date && event.end_date ? `${event.start_date} ~ ${event.end_date}` : null}
+        eventLocation={event.venue_name && event.venue_address ? `${event.venue_name}, ${event.venue_address}` : event.venue_name || event.venue_address || null}
+        heroTagline={event.hero_tagline}
+        primaryColor={event.primary_color}
+      />
 
       {/* 발송 로그 섹션 */}
       <MailLogsSection logs={mailLogs} />

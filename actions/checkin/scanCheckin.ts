@@ -2,12 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { createOperationLog } from '@/actions/operations/createLog';
 
 // 타입 정의
 interface ScanCheckinInput {
   eventId: string;
   qr: string;
   scannedBy?: string;
+  source?: string; // 'admin_scanner' | 'staff_scanner' | 'kiosk'
 }
 
 interface ScanCheckinResult {
@@ -93,7 +95,7 @@ export async function scanCheckinAction(input: unknown): Promise<ScanCheckinResu
       throw new Error('Invalid input');
     }
 
-    const { eventId, qr, scannedBy } = input as ScanCheckinInput;
+    const { eventId, qr, scannedBy, source = 'admin_scanner' } = input as ScanCheckinInput;
 
     if (!eventId || typeof eventId !== 'string') {
       throw new Error('eventId is required');
@@ -149,11 +151,11 @@ export async function scanCheckinAction(input: unknown): Promise<ScanCheckinResu
     }
 
     // 4) 체크인 로그 기록
-    const { error: logError } = await supabase.from('checkin_logs').insert({
+    const { error: logError } = await supabaseAdmin.from('checkin_logs').insert({
       event_id: eventId,
       participant_id: participant.id,
-      scanned_by: scannedBy || 'admin',
-      source: 'admin_scanner',
+      scanned_by: scannedBy || source === 'kiosk' ? 'kiosk' : 'admin',
+      source: source,
       is_duplicate: alreadyChecked,
       note: alreadyChecked ? '중복 체크인 시도' : null,
     });
@@ -163,8 +165,28 @@ export async function scanCheckinAction(input: unknown): Promise<ScanCheckinResu
       // 로그 저장 실패해도 체크인은 성공한 것으로 처리
     }
 
+    // 5) 운영 로그 기록
+    const sourceLabel = source === 'kiosk' ? '[KIOSK]' : source === 'staff_scanner' ? '[Staff]' : '[Admin]';
+    await createOperationLog({
+      eventId,
+      type: 'checkin',
+      message: alreadyChecked
+        ? `${sourceLabel} ${participant.name} 님 중복 체크인 시도`
+        : `${sourceLabel} ${participant.name} 님 체크인 완료`,
+      actor: scannedBy || (source === 'kiosk' ? 'kiosk' : 'admin'),
+      metadata: {
+        participant_id: participant.id,
+        is_duplicate: alreadyChecked,
+        vip_level: (participant.vip_level as number) || 0,
+        source: source,
+      },
+    });
+
     // 페이지 재검증
     revalidatePath(`/admin/events/${eventId}/scanner`);
+    if (source === 'kiosk') {
+      revalidatePath(`/kiosk/${eventId}`);
+    }
 
     return {
       participant: {

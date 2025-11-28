@@ -169,12 +169,19 @@ export default async function ParticipantListPage({ params }: ParticipantListPag
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link href={`/admin/events/${eventId}/participants/${participant.id}/edit`}>
-                        <Button variant="ghost" size="sm">
-                          <Edit3 className="w-4 h-4 mr-1" />
-                          관리
-                        </Button>
-                      </Link>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Link href={`/admin/events/${eventId}/participants/${participant.id}/info`}>
+                          <Button variant="ghost" size="sm">
+                            Info
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/events/${eventId}/participants/${participant.id}/edit`}>
+                          <Button variant="ghost" size="sm">
+                            <Edit3 className="w-4 h-4 mr-1" />
+                            관리
+                          </Button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );

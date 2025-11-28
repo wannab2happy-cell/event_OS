@@ -1,7 +1,8 @@
 'use server';
 
-import { supabase } from '@/lib/supabaseClient';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { createAdminNotification } from '@/lib/notifications';
+import { logParticipantUpdate } from '@/actions/participant/logParticipantUpdate';
 import type {
   BasicInfo,
   PassportData,
@@ -16,7 +17,20 @@ export async function saveParticipantData(
   data: BasicInfo
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const { data: updatedParticipant, error: participantError } = await supabase
+    // 1) 업데이트 전 참가자 정보 가져오기
+    const { data: beforeParticipant, error: fetchError } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (fetchError || !beforeParticipant) {
+      return { success: false, message: '참가자 정보를 찾을 수 없습니다.' };
+    }
+
+    // 2) 참가자 정보 업데이트
+    const { data: updatedParticipant, error: participantError } = await supabaseAdmin
       .from('event_participants')
       .update({
         name: data.name,
@@ -41,6 +55,15 @@ export async function saveParticipantData(
       return { success: false, message: '유효한 참가자가 아닙니다.' };
     }
 
+    // 3) 변경 로그 기록
+    await logParticipantUpdate({
+      eventId,
+      participantId,
+      before: beforeParticipant,
+      after: updatedParticipant,
+      actor: 'admin',
+    });
+
     return { success: true, message: '정보가 성공적으로 저장되었습니다.' };
   } catch (error) {
     console.error('Server Action Error:', error);
@@ -54,7 +77,20 @@ export async function savePassportData(
   data: PassportData
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const { error: participantError } = await supabase
+    // 1) 업데이트 전 참가자 정보 가져오기
+    const { data: beforeParticipant, error: fetchError } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (fetchError || !beforeParticipant) {
+      return { success: false, message: '참가자 정보를 찾을 수 없습니다.' };
+    }
+
+    // 2) 여권 정보 업데이트
+    const { error: participantError } = await supabaseAdmin
       .from('event_participants')
       .update({
         passport_number: data.passport_number,
@@ -70,6 +106,25 @@ export async function savePassportData(
       return { success: false, message: '여권 정보 업데이트에 실패했습니다.' };
     }
 
+    // 3) 업데이트 후 참가자 정보 가져오기
+    const { data: afterParticipant } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (afterParticipant) {
+      // 4) 변경 로그 기록
+      await logParticipantUpdate({
+        eventId,
+        participantId,
+        before: beforeParticipant,
+        after: afterParticipant,
+        actor: 'admin',
+      });
+    }
+
     return { success: true, message: '여권 정보가 성공적으로 저장되었습니다.' };
   } catch (error) {
     console.error('Server Action Error:', error);
@@ -83,7 +138,20 @@ export async function saveTravelData(
   data: TravelDataExtended
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const { error: participantError } = await supabase
+    // 1) 업데이트 전 참가자 정보 가져오기
+    const { data: beforeParticipant, error: fetchError } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (fetchError || !beforeParticipant) {
+      return { success: false, message: '참가자 정보를 찾을 수 없습니다.' };
+    }
+
+    // 2) 항공 정보 업데이트
+    const { error: participantError } = await supabaseAdmin
       .from('event_participants')
       .update({
         gender: data.gender,
@@ -107,6 +175,25 @@ export async function saveTravelData(
       return { success: false, message: '항공 정보 업데이트에 실패했습니다.' };
     }
 
+    // 3) 업데이트 후 참가자 정보 가져오기
+    const { data: afterParticipant } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (afterParticipant) {
+      // 4) 변경 로그 기록
+      await logParticipantUpdate({
+        eventId,
+        participantId,
+        before: beforeParticipant,
+        after: afterParticipant,
+        actor: 'admin',
+      });
+    }
+
     await createAdminNotification({
       eventId: eventId as UUID,
       participantId: participantId as UUID,
@@ -127,7 +214,20 @@ export async function saveHotelData(
   data: HotelDataExtended
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const { error: participantError } = await supabase
+    // 1) 업데이트 전 참가자 정보 가져오기
+    const { data: beforeParticipant, error: fetchError } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (fetchError || !beforeParticipant) {
+      return { success: false, message: '참가자 정보를 찾을 수 없습니다.' };
+    }
+
+    // 2) 호텔 정보 업데이트
+    const { error: participantError } = await supabaseAdmin
       .from('event_participants')
       .update({
         hotel_check_in: data.hotel_check_in,
@@ -143,6 +243,25 @@ export async function saveHotelData(
     if (participantError) {
       console.error('Hotel update error:', participantError);
       return { success: false, message: '호텔 정보 업데이트에 실패했습니다.' };
+    }
+
+    // 3) 업데이트 후 참가자 정보 가져오기
+    const { data: afterParticipant } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (afterParticipant) {
+      // 4) 변경 로그 기록
+      await logParticipantUpdate({
+        eventId,
+        participantId,
+        before: beforeParticipant,
+        after: afterParticipant,
+        actor: 'admin',
+      });
     }
 
     await createAdminNotification({

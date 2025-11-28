@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { createOperationLog } from '@/actions/operations/createLog';
 
 // web-push는 동적 import로 처리 (선택적 의존성)
 let webPush: any = null;
@@ -131,6 +132,20 @@ export async function sendPushAction(input: unknown): Promise<{ success: boolean
         }
       }
     }
+
+    // 운영 로그 기록
+    await createOperationLog({
+      eventId,
+      type: 'broadcast',
+      message: `Push 알림 발송: "${title}" (${sentCount}명 성공, ${failedCount}명 실패)`,
+      actor: 'admin',
+      metadata: {
+        title,
+        body,
+        sent: sentCount,
+        failed: failedCount,
+      },
+    });
 
     // 페이지 재검증
     revalidatePath(`/admin/events/${eventId}/broadcast`);

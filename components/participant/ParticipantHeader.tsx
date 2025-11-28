@@ -157,6 +157,12 @@ export default function ParticipantHeader({ event, branding }: ParticipantHeader
             {/* 액션 버튼 */}
             <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-200">
               <Link
+                href={`/${event.id}/me`}
+                className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+              >
+                My Page
+              </Link>
+              <Link
                 href={`/${event.id}/login`}
                 className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition"
               >

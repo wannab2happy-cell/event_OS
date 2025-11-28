@@ -27,9 +27,10 @@ async function fetchTablesData(eventId: string) {
   // 참가자 (등록 완료된 참가자만)
   const { data: participants, error: participantsError } = await supabaseAdmin
     .from('event_participants')
-    .select('id, name, email, status, company')
+    .select('id, name, email, status, company, vip_level')
     .eq('event_id', eventId)
-    .eq('status', 'completed');
+    .eq('status', 'completed')
+    .order('name', { ascending: true });
 
   if (participantsError) {
     console.error('Participants fetch error:', participantsError);
@@ -46,20 +47,33 @@ async function fetchTablesData(eventId: string) {
     console.error('Tables fetch error:', tablesError);
   }
 
-  // 배정
-  const { data: assignments, error: assignmentsError } = await supabaseAdmin
+  // 확정 배정 (is_draft = false)
+  const { data: confirmedAssignments, error: confirmedError } = await supabaseAdmin
     .from('table_assignments')
-    .select('id, table_id, participant_id, seat_number')
-    .eq('event_id', eventId);
+    .select('id, table_id, participant_id, seat_number, is_draft')
+    .eq('event_id', eventId)
+    .eq('is_draft', false);
 
-  if (assignmentsError) {
-    console.error('Assignments fetch error:', assignmentsError);
+  if (confirmedError) {
+    console.error('Confirmed assignments fetch error:', confirmedError);
+  }
+
+  // Draft 배정 (is_draft = true)
+  const { data: draftAssignments, error: draftError } = await supabaseAdmin
+    .from('table_assignments')
+    .select('id, table_id, participant_id, seat_number, is_draft')
+    .eq('event_id', eventId)
+    .eq('is_draft', true);
+
+  if (draftError) {
+    console.error('Draft assignments fetch error:', draftError);
   }
 
   return {
     participants: participants || [],
     tables: tables || [],
-    assignments: assignments || [],
+    confirmedAssignments: confirmedAssignments || [],
+    draftAssignments: draftAssignments || [],
   };
 }
 
@@ -82,37 +96,65 @@ export default async function TablesPage({ params }: TablesPageProps) {
     return notFound();
   }
 
-  const { participants, tables, assignments } = tablesData;
+  const { participants, tables, confirmedAssignments, draftAssignments } = tablesData;
 
   // Summary 계산
   const totalParticipants = participants.length;
-  const assignedParticipantIds = new Set(assignments.map((a) => a.participant_id));
+  const allAssignments = [...confirmedAssignments, ...draftAssignments];
+  const assignedParticipantIds = new Set(allAssignments.map((a) => a.participant_id));
   const assignedCount = assignedParticipantIds.size;
   const unassignedCount = totalParticipants - assignedCount;
   const tableCount = tables.length;
+  const draftCount = draftAssignments.length;
+  const confirmedCount = confirmedAssignments.length;
 
-  // Tables with participants 매핑
-  const tablesWithParticipants = tables.map((table) => {
-    const tableAssignments = assignments.filter((a) => a.table_id === table.id);
-    const participantList = tableAssignments
-      .map((a) => {
-        const participant = participants.find((p) => p.id === a.participant_id);
-        return participant
-          ? {
-              id: participant.id,
-              name: participant.name,
-              company: participant.company,
-            }
-          : null;
-      })
-      .filter((p): p is { id: string; name: string; company: string | null } => p !== null);
+  // 미배정 참가자 목록
+  const unassignedParticipants = participants.filter(
+    (p) => !assignedParticipantIds.has(p.id)
+  );
+
+  // Tables with participants 매핑 (Confirmed + Draft 구분)
+  const tablesWithAssignments = tables.map((table) => {
+    const tableConfirmed = confirmedAssignments.filter((a) => a.table_id === table.id);
+    const tableDraft = draftAssignments.filter((a) => a.table_id === table.id);
+
+    const confirmedList = tableConfirmed.map((a) => {
+      const participant = participants.find((p) => p.id === a.participant_id);
+      return participant
+        ? {
+            assignmentId: a.id,
+            participantId: participant.id,
+            name: participant.name,
+            company: participant.company,
+            vipLevel: participant.vip_level || 0,
+            seatNumber: a.seat_number,
+            isDraft: false,
+          }
+        : null;
+    }).filter((p): p is NonNullable<typeof p> => p !== null);
+
+    const draftList = tableDraft.map((a) => {
+      const participant = participants.find((p) => p.id === a.participant_id);
+      return participant
+        ? {
+            assignmentId: a.id,
+            participantId: participant.id,
+            name: participant.name,
+            company: participant.company,
+            vipLevel: participant.vip_level || 0,
+            seatNumber: a.seat_number,
+            isDraft: true,
+          }
+        : null;
+    }).filter((p): p is NonNullable<typeof p> => p !== null);
 
     return {
       id: table.id,
       name: table.name,
       capacity: table.capacity,
-      assignedCount: participantList.length,
-      participants: participantList,
+      confirmedAssignments: confirmedList,
+      draftAssignments: draftList,
+      totalAssigned: confirmedList.length + draftList.length,
     };
   });
 
@@ -121,6 +163,8 @@ export default async function TablesPage({ params }: TablesPageProps) {
     tableCount,
     assignedCount,
     unassignedCount: unassignedCount > 0 ? unassignedCount : 0,
+    draftCount,
+    confirmedCount,
   };
 
   return (
@@ -134,7 +178,18 @@ export default async function TablesPage({ params }: TablesPageProps) {
       </div>
 
       {/* 테이블 배정 클라이언트 컴포넌트 */}
-      <TablesClient eventId={eventId} summary={summary} tables={tablesWithParticipants} />
+      <TablesClient
+        eventId={eventId}
+        summary={summary}
+        tables={tablesWithAssignments}
+        unassignedParticipants={unassignedParticipants.map((p) => ({
+          id: p.id,
+          name: p.name,
+          email: p.email,
+          company: p.company,
+          vipLevel: p.vip_level || 0,
+        }))}
+      />
     </div>
   );
 }

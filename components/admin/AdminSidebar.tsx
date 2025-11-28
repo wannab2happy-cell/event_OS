@@ -2,17 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Mail, Settings, Table, Zap, QrCode, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Users, Mail, Settings, Table, Zap, QrCode, Megaphone, Activity, Radio, History, UsersCog, Monitor, FileText, Users2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드' },
   { href: '/admin/events', icon: Zap, label: '이벤트 관리' },
   { href: '/admin/events/EVENT_ID/participants', icon: Users, label: '참가자' },
+  { href: '/admin/events/EVENT_ID/participants-center', icon: Users2, label: 'Participant Center' },
   { href: '/admin/events/EVENT_ID/mail', icon: Mail, label: '메일 센터' },
   { href: '/admin/events/EVENT_ID/tables', icon: Table, label: '테이블 배정' },
+  { href: '/admin/events/EVENT_ID/operations', icon: Radio, label: '운영 대시보드' },
   { href: '/admin/events/EVENT_ID/scanner', icon: QrCode, label: '체크인 스캐너' },
+  { href: '/admin/events/EVENT_ID/live', icon: Activity, label: '라이브 대시보드' },
+  { href: '/admin/events/EVENT_ID/updates', icon: History, label: '정보 변경 로그' },
   { href: '/admin/events/EVENT_ID/broadcast', icon: Megaphone, label: 'Push 알림' },
+  { href: '/admin/events/EVENT_ID/staff', icon: UsersCog, label: 'Staff 관리' },
+  { href: '/admin/events/EVENT_ID/kiosk', icon: Monitor, label: 'KIOSK 설정' },
+  { href: '/admin/events/EVENT_ID/export', icon: FileText, label: 'Export & Reports' },
   { href: '/admin/settings/zero-cost', icon: Settings, label: 'Zero-Cost 가이드' },
 ];
 

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import type { UUID } from '@/lib/types';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { sendConfirmationEmail } from '@/lib/resend';
+import { logParticipantUpdate } from '@/actions/participant/logParticipantUpdate';
 
 interface AdminConfirmationData {
   flight_ticket_no?: string;
@@ -21,6 +22,19 @@ export async function updateParticipantConfirmation(
   data: AdminConfirmationData
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // 1) 업데이트 전 참가자 정보 가져오기
+    const { data: beforeParticipant, error: fetchError } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (fetchError || !beforeParticipant) {
+      return { success: false, message: '참가자 정보를 찾을 수 없습니다.' };
+    }
+
+    // 2) 예약 확정 정보 업데이트
     const { error: dbError } = await supabaseAdmin
       .from('event_participants')
       .update({
@@ -36,6 +50,25 @@ export async function updateParticipantConfirmation(
     if (dbError) {
       console.error('Admin update error:', dbError);
       return { success: false, message: '예약 확정 정보 업데이트에 실패했습니다.' };
+    }
+
+    // 3) 업데이트 후 참가자 정보 가져오기
+    const { data: afterParticipant } = await supabaseAdmin
+      .from('event_participants')
+      .select('*')
+      .eq('id', participantId)
+      .eq('event_id', eventId)
+      .single();
+
+    if (afterParticipant) {
+      // 4) 변경 로그 기록
+      await logParticipantUpdate({
+        eventId,
+        participantId,
+        before: beforeParticipant,
+        after: afterParticipant,
+        actor: 'admin',
+      });
     }
 
     // 2. 상태가 확정됨으로 변경되었을 경우, 참가자에게 이메일 알림

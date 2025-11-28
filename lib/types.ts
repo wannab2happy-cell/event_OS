@@ -129,3 +129,206 @@ export interface AdminNotification {
   created_at: string;
 }
 
+// Participant Portal Summary Types
+export type ParticipantStatusSummary = {
+  status: 'invited' | 'registered' | 'completed' | 'checked_in';
+  statusLabel: string;
+  isVip: boolean;
+  vipLevel: number | null;
+  vipLabel: string | null;
+  tableName: string | null;
+  seatNumber: number | null;
+  isCheckedIn: boolean;
+  checkedInAt: string | null;
+  guestOfName: string | null;
+};
+
+export type ParticipantTravelSummary = {
+  hasTravel: boolean;
+  departureCity: string | null;
+  arrivalCity: string | null;
+  arrivalFlight: string | null;
+  departureFlight: string | null;
+  flightNumber: string | null;
+  departureDate: string | null;
+  arrivalDate: string | null;
+  departureTime: string | null;
+  arrivalTime: string | null;
+  isTravelConfirmed: boolean;
+  flightTicketNo: string | null;
+  travelStatusLabel: string;
+};
+
+export type ParticipantHotelSummary = {
+  hasHotel: boolean;
+  hotelName: string | null;
+  checkInDate: string | null;
+  checkOutDate: string | null;
+  roomType: string | null;
+  isConfirmed: boolean | null;
+  guestConfirmationNo: string | null;
+  hotelStatusLabel: string;
+};
+
+// Table Assignment Types
+export interface TableAssignment {
+  id: UUID;
+  event_id: UUID;
+  table_id: UUID;
+  participant_id: UUID;
+  seat_number: number | null;
+  is_draft?: boolean | null;
+  source?: string | null;
+  batch_id?: string | null;
+  assigned_by?: string | null;
+  assigned_at?: string | null;
+  created_at?: string;
+}
+
+export interface Table {
+  id: UUID;
+  event_id: UUID;
+  name: string;
+  capacity: number;
+  sort_order: number;
+  is_vip_table?: boolean | null;
+  tags?: string[] | null;
+  created_at?: string;
+}
+
+export interface TableSummary {
+  totalParticipants: number;
+  tableCount: number;
+  assignedCount: number;
+  unassignedCount: number;
+  draftCount?: number;
+  confirmedCount?: number;
+}
+
+// Participant Info Center Types
+export interface TableInfo {
+  id: string;
+  name: string;
+  sort_order?: number | null;
+}
+
+export interface ParticipantExtended {
+  participant: Participant;
+  table: TableInfo | null;
+  vip_level: number | null;
+  guest_of_name?: string | null;
+  is_checked_in?: boolean | null;
+  checked_in_at?: string | null;
+  travel?: {
+    arrival_airport?: string | null;
+    arrival_flight_no?: string | null;
+    departure_airport?: string | null;
+    departure_flight_no?: string | null;
+    is_travel_confirmed?: boolean | null;
+  } | null;
+  hotel?: {
+    hotel_name?: string | null;
+    check_in_date?: string | null;
+    check_out_date?: string | null;
+    room_type?: string | null;
+    is_hotel_confirmed?: boolean | null;
+  } | null;
+}
+
+// Helper functions
+export function mapStatusToLabel(status: string): string {
+  const statusMap: Record<string, string> = {
+    invited: '초대됨',
+    registered: '등록 중',
+    completed: '등록 완료',
+    checked_in: '체크인 완료',
+  };
+  return statusMap[status] || status;
+}
+
+export function mapVipLevelToLabel(level: number | null | undefined): string {
+  if (!level || level === 0) return '';
+  return `VIP ${level}`;
+}
+
+// Participant Info Center Types
+export interface ParticipantInfoCenterData {
+  basic: {
+    id: string;
+    eventId: string;
+    name: string;
+    email: string;
+    company?: string | null;
+    position?: string | null;
+    phone?: string | null;
+    mobile_phone?: string | null;
+    country?: string | null;
+    status: ParticipantStatus;
+    created_at: string;
+    updated_at: string;
+    vip_level?: number | null;
+    guest_of?: string | null;
+    guest_of_name?: string | null;
+    tableName?: string | null;
+    isCheckedIn?: boolean | null;
+  };
+  travel: {
+    departure_airport?: string | null;
+    arrival_airport?: string | null;
+    departure_date?: string | null;
+    return_date?: string | null;
+    departure_time?: string | null;
+    arrival_time?: string | null;
+    flight_number_go?: string | null;
+    flight_number_return?: string | null;
+    passport_name?: string | null;
+    passport_number?: string | null;
+    passport_expiry?: string | null;
+    special_request?: string | null;
+    is_travel_confirmed?: boolean | null;
+  };
+  hotel: {
+    hotel_name?: string | null;
+    room_type?: string | null;
+    check_in_date?: string | null;
+    check_out_date?: string | null;
+    nights?: number | null;
+    confirmation_number?: string | null;
+    roommate_name?: string | null;
+    smoking_preference?: string | null;
+    is_hotel_confirmed?: boolean | null;
+  };
+  internalNotes: {
+    id: string;
+    createdAt: string;
+    updatedAt?: string | null;
+    authorEmail?: string | null;
+    authorName?: string | null;
+    content: string;
+    isPinned?: boolean;
+  }[];
+  checkInLogs: {
+    id: string;
+    checkedAt: string;
+    location?: string | null;
+    type?: string | null;
+    method?: string | null;
+    staffEmail?: string | null;
+    staffName?: string | null;
+    source?: string | null;
+    isDuplicate?: boolean | null;
+    note?: string | null;
+  }[];
+  changeLogs: {
+    id: string;
+    changedAt: string;
+    field: string;
+    label?: string | null;
+    beforeValue?: string | null;
+    afterValue?: string | null;
+    changedByEmail?: string | null;
+    changedByName?: string | null;
+    source?: string | null;
+  }[];
+}
+

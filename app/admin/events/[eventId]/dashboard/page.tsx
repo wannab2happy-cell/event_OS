@@ -42,16 +42,31 @@ async function fetchRecentParticipants(eventId: string): Promise<Participant[]> 
   return data as Participant[];
 }
 
-export default async function AdminDashboardPage() {
+type AdminEventDashboardPageProps = {
+  params: Promise<{ eventId?: string }>;
+};
+
+export default async function AdminEventDashboardPage({ params }: AdminEventDashboardPageProps) {
   await assertAdminAuth();
 
-  const { data: eventData } = await supabase.from('events').select('id, title, code').limit(1).single();
+  const resolvedParams = await params;
+  const eventId = resolvedParams?.eventId;
 
-  if (!eventData) {
+  if (!eventId) {
     redirect('/admin/events');
   }
 
-  const { id: eventId, title: eventTitle } = eventData;
+  const { data: eventData, error: eventError } = await supabase
+    .from('events')
+    .select('id, title, code')
+    .eq('id', eventId)
+    .single();
+
+  if (eventError || !eventData) {
+    redirect('/admin/events');
+  }
+
+  const { title: eventTitle } = eventData;
   const metrics = await fetchDashboardData(eventId);
   const recentParticipants = await fetchRecentParticipants(eventId);
 

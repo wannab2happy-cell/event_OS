@@ -2,59 +2,48 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Mail, Settings, Table, Zap } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {
+  LayoutGrid,
+  CalendarCheck,
+  Users,
+  Mail,
+  Table,
+} from 'lucide-react';
 
-const adminNavItems = [
-  { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드' },
-  { href: '/admin/events', icon: Zap, label: '이벤트 관리' },
-  { href: '/admin/events/EVENT_ID/participants', icon: Users, label: '참가자' },
-  { href: '/admin/events/EVENT_ID/mail', icon: Mail, label: '메일 센터' },
-  { href: '/admin/events/EVENT_ID/tables', icon: Table, label: '테이블 배정' },
-  { href: '/admin/settings/zero-cost', icon: Settings, label: 'Zero-Cost 가이드' },
+const menu = [
+  { name: '대시보드', href: '/admin/dashboard', icon: LayoutGrid },
+  { name: '이벤트 관리', href: '/admin/events', icon: CalendarCheck },
+  { name: '참가자 관리', href: '/admin/participants', icon: Users },
+  { name: '메일 센터', href: '/admin/mail', icon: Mail },
+  { name: '테이블 배정', href: '/admin/tables', icon: Table },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const eventIdPlaceholder = 'v1_default';
-
-  const navItems = adminNavItems.map((item) => ({
-    ...item,
-    href: item.href.replace('EVENT_ID', eventIdPlaceholder),
-  }));
 
   return (
-    <div className="flex flex-col w-64 bg-white border-r border-gray-200">
-      <div className="flex items-center justify-center h-16 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900">
-          Event<span className="text-blue-600">OS</span>
-        </h2>
-      </div>
-      <nav className="flex-1 p-4 space-y-2">
-        {navItems.map((item) => {
-          const isActive =
-            pathname.startsWith(item.href) && item.href !== '/admin/dashboard'
-              ? true
-              : pathname === item.href;
+    <aside className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col p-4 sticky top-0">
+      <div className="text-xl font-bold mb-8">EventOS Admin</div>
+
+      <nav className="flex flex-col gap-2">
+        {menu.map((item) => {
+          const Icon = item.icon;
+          const active = pathname.startsWith(item.href);
 
           return (
             <Link
-              key={item.href}
+              key={item.name}
               href={item.href}
-              className={cn(
-                'flex items-center space-x-3 p-3 rounded-lg transition-colors duration-150',
-                isActive
-                  ? 'bg-blue-50 text-blue-600 font-semibold'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
-              )}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                ${active ? 'bg-purple-100 text-purple-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}
+              `}
             >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <Icon size={18} />
+              {item.name}
             </Link>
           );
         })}
       </nav>
-    </div>
+    </aside>
   );
 }
-

@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { assertAdminAuth } from '@/lib/auth';
+import '../globals.css';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
@@ -16,13 +17,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await assertAdminAuth();
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 text-gray-900">
+      {/* Sidebar */}
       <AdminSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
         <AdminHeader />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">{children}</main>
+
+        <main className="p-6 max-w-7xl w-full mx-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
 }
-

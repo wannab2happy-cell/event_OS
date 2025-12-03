@@ -125,9 +125,9 @@ export default async function TablesPage({ params }: TablesPageProps) {
   // No initial fetch to improve page load time
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Table Assignment</h1>
+    <div className="space-y-8">
+      <div className="flex flex-col space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Table Assignment</h1>
         <AssignmentStateBadge hasDraft={hasDraft} hasConfirmed={hasConfirmed} />
       </div>
 

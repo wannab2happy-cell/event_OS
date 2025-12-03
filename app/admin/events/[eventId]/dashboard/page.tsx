@@ -98,64 +98,53 @@ export default async function AdminEventDashboardPage({ params }: AdminEventDash
   const dateRange = start_date && end_date ? `${formatDate(start_date)} ~ ${formatDate(end_date)}` : '';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header - Stripe Style */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{eventTitle}</h1>
-          <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-            {dateRange && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                <span>{dateRange}</span>
-              </div>
-            )}
-            {location_name && (
-              <div className="flex items-center gap-1">
-                <Home className="w-4 h-4" />
-                <span>{location_name}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/admin/events/${eventId}/participants`}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <Users className="w-4 h-4" />
-            참가자 관리
-          </Link>
+      <div className="flex flex-col space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{eventTitle}</h1>
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          {dateRange && (
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              <span>{dateRange}</span>
+            </div>
+          )}
+          {location_name && (
+            <div className="flex items-center gap-1">
+              <Home className="w-4 h-4" />
+              <span>{location_name}</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Metrics Grid - Stripe Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Participants */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">총 참가자</CardTitle>
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <Users className="h-4 w-4 text-blue-600" />
+            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <Users className="h-5 w-5 text-blue-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold text-gray-900">{metrics.total}</div>
-            <p className="text-xs text-gray-500 mt-1">전체 초대 명단</p>
+            <div className="text-3xl font-bold text-gray-900">{metrics.total}</div>
+            <p className="text-xs text-gray-500 mt-2">전체 초대 명단</p>
           </CardContent>
         </Card>
 
         {/* Registered */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">등록 완료</CardTitle>
-            <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckSquare className="h-4 w-4 text-emerald-600" />
+            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+              <CheckSquare className="h-5 w-5 text-emerald-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold text-gray-900">{metrics.registered}</div>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="text-3xl font-bold text-gray-900">{metrics.registered}</div>
+            <div className="flex items-center gap-1 mt-2">
               <span className="text-xs text-gray-500">{registrationRate}%</span>
               <TrendingUp className="h-3 w-3 text-emerald-600" />
             </div>
@@ -163,16 +152,16 @@ export default async function AdminEventDashboardPage({ params }: AdminEventDash
         </Card>
 
         {/* Checked In */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">체크인 완료</CardTitle>
-            <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
-              <CheckSquare className="h-4 w-4 text-purple-600" />
+            <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+              <CheckSquare className="h-5 w-5 text-purple-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold text-gray-900">{metrics.checkedIn}</div>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="text-3xl font-bold text-gray-900">{metrics.checkedIn}</div>
+            <div className="flex items-center gap-1 mt-2">
               <span className="text-xs text-gray-500">{checkInRate}%</span>
               <TrendingUp className="h-3 w-3 text-purple-600" />
             </div>
@@ -180,16 +169,16 @@ export default async function AdminEventDashboardPage({ params }: AdminEventDash
         </Card>
 
         {/* Completion Rate */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">정보 완성도</CardTitle>
-            <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
-              <BarChart className="h-4 w-4 text-amber-600" />
+            <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+              <BarChart className="h-5 w-5 text-amber-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold text-gray-900">{completionRate}%</div>
-            <p className="text-xs text-gray-500 mt-1">{metrics.completed}명 완료</p>
+            <div className="text-3xl font-bold text-gray-900">{completionRate}%</div>
+            <p className="text-xs text-gray-500 mt-2">{metrics.completed}명 완료</p>
           </CardContent>
         </Card>
       </div>
@@ -198,7 +187,7 @@ export default async function AdminEventDashboardPage({ params }: AdminEventDash
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Participants - Left Column (2/3) */}
         <div className="lg:col-span-2">
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="rounded-xl border border-gray-200 bg-white shadow-sm">
             <CardHeader className="border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -268,7 +257,7 @@ export default async function AdminEventDashboardPage({ params }: AdminEventDash
         {/* Quick Actions - Right Column (1/3) */}
         <div className="space-y-6">
           {/* Quick Actions Card */}
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="rounded-xl border border-gray-200 bg-white shadow-sm">
             <CardHeader className="border-b border-gray-200">
               <CardTitle className="text-base font-semibold text-gray-900">빠른 작업</CardTitle>
               <CardDescription className="mt-1">자주 사용하는 기능</CardDescription>
@@ -319,7 +308,7 @@ export default async function AdminEventDashboardPage({ params }: AdminEventDash
           </Card>
 
           {/* Event Status Card */}
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="rounded-xl border border-gray-200 bg-white shadow-sm">
             <CardHeader className="border-b border-gray-200">
               <CardTitle className="text-base font-semibold text-gray-900">이벤트 상태</CardTitle>
             </CardHeader>

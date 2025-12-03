@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-export default function AdminHeader() {
+interface AdminHeaderProps {
+  eventId?: string;
+}
+
+export default function AdminHeader({ eventId }: AdminHeaderProps) {
   const supabase = createClientComponentClient({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

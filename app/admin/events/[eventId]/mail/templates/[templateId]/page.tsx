@@ -28,13 +28,13 @@ export default async function EditTemplatePage({ params }: EditTemplatePageProps
   const template = templateResult.data;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+    <div className="space-y-8">
+      <div className="flex flex-col space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
           <FileText className="w-6 h-6 text-sky-600" />
           Edit Email Template
         </h1>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-500">
           템플릿을 수정합니다. 변경사항을 저장하면 즉시 반영됩니다.
         </p>
       </div>

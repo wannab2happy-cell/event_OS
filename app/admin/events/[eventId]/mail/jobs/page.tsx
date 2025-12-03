@@ -25,22 +25,20 @@ export default async function JobsPage({ params }: JobsPageProps) {
   const templates = templatesResult.data || [];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href={`/admin/events/${eventId}/mail`}>
-            <button className="text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-              <History className="w-6 h-6 text-sky-600" />
-              Email Jobs
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">모든 메일 발송 작업 내역을 확인합니다.</p>
-          </div>
+      <div className="flex items-center gap-4">
+        <Link href={`/admin/events/${eventId}/mail`}>
+          <button className="text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        </Link>
+        <div className="flex flex-col space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+            <History className="w-6 h-6 text-sky-600" />
+            Email Jobs
+          </h1>
+          <p className="text-sm text-gray-500">모든 메일 발송 작업 내역을 확인합니다.</p>
         </div>
       </div>
 

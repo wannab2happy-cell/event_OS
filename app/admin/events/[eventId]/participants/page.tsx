@@ -78,10 +78,13 @@ export default async function ParticipantListPage({ params }: ParticipantListPag
   );
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-        <Users className="w-6 h-6 mr-2" /> 참가자 관리 대시보드
-      </h1>
+    <div className="space-y-8">
+      <div className="flex flex-col space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center">
+          <Users className="w-6 h-6 mr-2" /> 참가자 관리
+        </h1>
+        <p className="text-sm text-gray-500">이벤트 참가자 목록 및 관리</p>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {(Object.keys(statusMap) as ParticipantStatus[]).map((status) => {

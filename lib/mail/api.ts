@@ -9,6 +9,7 @@ import type {
   EmailTemplate,
   EmailJob,
   EmailLog,
+  EmailAutomation,
   CreateEmailTemplateInput,
   UpdateEmailTemplateInput,
   CreateEmailJobInput,
@@ -265,6 +266,7 @@ export async function createEmailJob(
       template_id: input.template_id,
       status: 'pending' as const,
       total_count: totalCount,
+      processed_count: 0,
       success_count: 0,
       fail_count: 0,
     };
@@ -303,7 +305,7 @@ export async function getEmailJobs(
 
     const { data, error, count } = await supabase
       .from('email_jobs')
-      .select('id, event_id, template_id, status, total_count, success_count, fail_count, created_at, updated_at', {
+      .select('id, event_id, template_id, status, total_count, processed_count, success_count, fail_count, created_at, updated_at, segmentation', {
         count: 'exact',
       })
       .eq('event_id', eventId)
@@ -352,7 +354,7 @@ export async function getEmailJob(id: string): Promise<ApiResponse<EmailJob>> {
 
     const { data, error } = await supabase
       .from('email_jobs')
-      .select('id, event_id, template_id, status, total_count, success_count, fail_count, created_at, updated_at')
+      .select('id, event_id, template_id, status, total_count, processed_count, success_count, fail_count, created_at, updated_at, segmentation')
       .eq('id', id)
       .single();
 
@@ -454,6 +456,219 @@ export async function getEmailLogDetail(id: string): Promise<ApiResponse<EmailLo
     }
 
     return { data: data as EmailLog };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Get recent email logs for an event (across all jobs)
+ */
+export async function getRecentEmailLogs(
+  eventId: string,
+  limit: number = 20
+): Promise<ApiResponse<EmailLog[]>> {
+  try {
+    const supabase = await createClient();
+
+    // First, get all job IDs for this event
+    const { data: jobs, error: jobsError } = await supabase
+      .from('email_jobs')
+      .select('id')
+      .eq('event_id', eventId);
+
+    if (jobsError) {
+      return { error: `Failed to fetch jobs: ${jobsError.message}` };
+    }
+
+    if (!jobs || jobs.length === 0) {
+      return { data: [] };
+    }
+
+    const jobIds = jobs.map((job) => job.id);
+
+    // Then get logs for these jobs
+    const { data, error } = await supabase
+      .from('email_logs')
+      .select('id, job_id, participant_id, email, status, error_message, sent_at')
+      .in('job_id', jobIds)
+      .order('sent_at', { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    if (error) {
+      return { error: `Failed to fetch logs: ${error.message}` };
+    }
+
+    return { data: (data || []) as EmailLog[] };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+// ============================================
+// EMAIL AUTOMATIONS
+// ============================================
+
+/**
+ * Get all automations for an event
+ */
+export async function getAutomationsForEvent(eventId: string): Promise<ApiResponse<EmailAutomation[]>> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('email_automations')
+      .select('*')
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return { error: `Failed to fetch automations: ${error.message}` };
+    }
+
+    return { data: (data || []) as EmailAutomation[] };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Get a single automation by ID
+ */
+export async function getAutomationById(id: string): Promise<ApiResponse<EmailAutomation>> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('email_automations')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      return { error: `Failed to fetch automation: ${error.message}` };
+    }
+
+    if (!data) {
+      return { error: 'Automation not found' };
+    }
+
+    return { data: data as EmailAutomation };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Get email logs for a job with filtering and pagination
+ */
+export async function getEmailJobLogs(
+  jobId: string,
+  options?: {
+    filter?: 'all' | 'success' | 'failed';
+    page?: number;
+    pageSize?: number;
+    search?: string;
+  }
+): Promise<PaginatedResponse<EmailLog>> {
+  try {
+    const supabase = await createClient();
+    const page = options?.page ?? 0;
+    const pageSize = options?.pageSize ?? 20;
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
+      .from('email_logs')
+      .select('id, job_id, participant_id, email, status, error_message, sent_at, created_at', {
+        count: 'exact',
+      })
+      .eq('job_id', jobId)
+      .order('created_at', { ascending: false });
+
+    // Apply filter
+    if (options?.filter === 'success') {
+      query = query.eq('status', 'success');
+    } else if (options?.filter === 'failed') {
+      query = query.eq('status', 'failed');
+    }
+
+    // Apply search (by email)
+    if (options?.search) {
+      query = query.ilike('email', `%${options.search}%`);
+    }
+
+    const { data, error, count } = await query.range(from, to);
+
+    if (error) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        pageSize,
+        hasMore: false,
+        error: `Failed to fetch logs: ${error.message}`,
+      };
+    }
+
+    const total = count ?? 0;
+    const hasMore = (page + 1) * pageSize < total;
+
+    return {
+      data: (data || []) as EmailLog[],
+      total,
+      page,
+      pageSize,
+      hasMore,
+    };
+  } catch (err) {
+    return {
+      data: [],
+      total: 0,
+      page: options?.page ?? 0,
+      pageSize: options?.pageSize ?? 20,
+      hasMore: false,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Get detailed job information including template name
+ */
+export async function getEmailJobDetails(jobId: string): Promise<ApiResponse<EmailJob & { template_name?: string }>> {
+  try {
+    const supabase = await createClient();
+
+    const { data: job, error: jobError } = await supabase
+      .from('email_jobs')
+      .select('id, event_id, template_id, status, total_count, processed_count, success_count, fail_count, created_at, updated_at, segmentation')
+      .eq('id', jobId)
+      .single();
+
+    if (jobError || !job) {
+      return { error: jobError?.message || 'Job not found' };
+    }
+
+    // Get template name
+    const { data: template } = await supabase
+      .from('email_templates')
+      .select('name')
+      .eq('id', job.template_id)
+      .single();
+
+    return {
+      data: {
+        ...(job as EmailJob),
+        template_name: template?.name,
+      },
+    };
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : 'Unknown error occurred',

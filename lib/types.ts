@@ -61,6 +61,7 @@ export interface Participant {
   num_adults: number | null;
   is_travel_confirmed: boolean;
   is_hotel_confirmed: boolean;
+  is_vip?: boolean;
 }
 
 export interface BasicInfo {

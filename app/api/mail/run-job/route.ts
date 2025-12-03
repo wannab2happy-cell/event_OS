@@ -133,11 +133,16 @@ export async function POST(request: NextRequest) {
         };
 
         // Apply merge variables to template
-        const { html, text } = applyMergeVariablesToTemplate(
-          template.body_html,
-          template.body_text,
+        const result = applyMergeVariablesToTemplate(
+          {
+            subject: template.subject,
+            body_html: template.body_html,
+            body_text: template.body_text || undefined,
+          },
           mergeVariables
         );
+        const html = result.body_html;
+        const text = result.body_text;
 
         const processedSubject = template.subject.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
           return mergeVariables[varName as keyof typeof mergeVariables]?.toString() || match;

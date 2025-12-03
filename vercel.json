@@ -1,0 +1,17 @@
+{
+  "crons": [
+    {
+      "path": "/api/mail/worker",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/mail/scheduler",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/message/worker",
+      "schedule": "* * * * *"
+    }
+  ]
+}
+

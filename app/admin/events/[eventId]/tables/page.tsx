@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { assertAdminAuth } from '@/lib/auth';
+import { AdminPage } from '@/components/admin/layout/AdminPage';
 import { TableForAssignment, TableAssignment } from '@/lib/tables/assignmentTypes';
 import { AssignmentStateBadge } from './AssignmentStateBadge';
 import { AlgorithmSelector } from './AlgorithmSelector';
@@ -125,12 +126,11 @@ export default async function TablesPage({ params }: TablesPageProps) {
   // No initial fetch to improve page load time
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Table Assignment</h1>
-        <AssignmentStateBadge hasDraft={hasDraft} hasConfirmed={hasConfirmed} />
-      </div>
-
+    <AdminPage
+      title="Table Assignment"
+      subtitle="테이블 배정을 관리합니다"
+      actions={<AssignmentStateBadge hasDraft={hasDraft} hasConfirmed={hasConfirmed} />}
+    >
       <TablesPageClient
         eventId={eventId}
         tables={tables}
@@ -145,7 +145,7 @@ export default async function TablesPage({ params }: TablesPageProps) {
         assignmentsDraft={assignmentsDraft}
         assignmentsConfirmed={assignmentsConfirmed}
       />
-    </div>
+    </AdminPage>
   );
 }
 

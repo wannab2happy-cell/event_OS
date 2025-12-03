@@ -1,25 +1,27 @@
-import React from 'react';
-import AdminSidebar from '@/components/admin/AdminSidebar';
-import AdminHeader from '@/components/admin/AdminHeader';
+import { AdminSidebar } from '@/components/admin/sidebar/AdminSidebar';
 
-type AdminEventLayoutProps = {
+type EventLayoutProps = {
   children: React.ReactNode;
-  params: Promise<{ eventId: string }>;
+  params: Promise<{ eventId?: string }>;
 };
 
-export default async function AdminEventLayout({ children, params }: AdminEventLayoutProps) {
-  const resolved = await params;
-  const eventId = resolved.eventId;
+export default async function EventLayout({ children, params }: EventLayoutProps) {
+  const resolvedParams = await params;
+  const eventId = resolvedParams?.eventId;
+
+  if (!eventId) {
+    return <div>Event ID is required</div>;
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
       <AdminSidebar eventId={eventId} />
 
-      <div className="flex-1 flex flex-col">
-        <AdminHeader eventId={eventId} />
-        <main className="flex-1 px-6 py-8">{children}</main>
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-[260px] overflow-y-auto">
+        {children}
       </div>
     </div>
   );
 }
-

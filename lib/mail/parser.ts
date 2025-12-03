@@ -1,116 +1,62 @@
 /**
- * Mail Merge Variable Parser
+ * Template Variable Parser
  * 
- * Utility functions for replacing merge variables in email templates
- * Supports {{variable}} syntax
+ * Replaces {{variable}} placeholders with actual values
  */
 
 /**
  * Apply merge variables to a template string
  * 
- * @param templateString - Template string with {{variable}} placeholders
+ * @param template - Template string with {{variable}} placeholders
  * @param variables - Object mapping variable names to values
- * @returns Template string with variables replaced
- * 
- * @example
- * applyMergeVariables(
- *   "Hello {{name}}, your table is {{tableName}}",
- *   { name: "Alex", tableName: "T3" }
- * )
- * // Returns: "Hello Alex, your table is T3"
+ * @returns Template with variables replaced
  */
-export function applyMergeVariables(
-  templateString: string,
-  variables: Record<string, string | number | null | undefined>
-): string {
-  if (!templateString) {
-    return '';
+export function applyMergeVariables(template: string, variables: Record<string, string>): string {
+  let result = template;
+
+  // Replace all {{variable}} patterns
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+    result = result.replace(regex, value);
   }
 
-  // Replace {{variable}} with values from variables object
-  return templateString.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-    const value = variables[varName];
-    
-    // Handle null/undefined values
-    if (value === null || value === undefined) {
-      return match; // Keep original placeholder if value not found
-    }
-    
-    // Convert to string
-    return String(value);
-  });
+  return result;
 }
 
 /**
- * Extract all merge variables from a template string
+ * Extract merge variables from a template string
  * 
- * @param templateString - Template string with {{variable}} placeholders
+ * @param template - Template string with {{variable}} placeholders
  * @returns Array of unique variable names found in the template
- * 
- * @example
- * extractMergeVariables("Hello {{name}}, your table is {{tableName}}")
- * // Returns: ["name", "tableName"]
  */
-export function extractMergeVariables(templateString: string): string[] {
-  if (!templateString) {
-    return [];
+export function extractMergeVariables(template: string): string[] {
+  const regex = /\{\{(\w+)\}\}/g;
+  const matches = template.matchAll(regex);
+  const variables = new Set<string>();
+  
+  for (const match of matches) {
+    if (match[1]) {
+      variables.add(match[1]);
+    }
   }
-
-  const matches = templateString.match(/\{\{(\w+)\}\}/g);
-  if (!matches) {
-    return [];
-  }
-
-  // Extract variable names and remove duplicates
-  const variables = matches.map((match) => match.replace(/\{\{|\}\}/g, ''));
-  return Array.from(new Set(variables));
+  
+  return Array.from(variables);
 }
 
 /**
- * Validate that all required variables are provided
+ * Apply merge variables to a complete email template
  * 
- * @param templateString - Template string with {{variable}} placeholders
+ * @param template - Email template object with subject and body
  * @param variables - Object mapping variable names to values
- * @returns Object with isValid flag and missing variables array
- * 
- * @example
- * validateMergeVariables(
- *   "Hello {{name}}, your table is {{tableName}}",
- *   { name: "Alex" }
- * )
- * // Returns: { isValid: false, missing: ["tableName"] }
- */
-export function validateMergeVariables(
-  templateString: string,
-  variables: Record<string, string | number | null | undefined>
-): { isValid: boolean; missing: string[] } {
-  const required = extractMergeVariables(templateString);
-  const provided = Object.keys(variables);
-  
-  const missing = required.filter((varName) => !provided.includes(varName));
-  
-  return {
-    isValid: missing.length === 0,
-    missing,
-  };
-}
-
-/**
- * Apply merge variables to both HTML and text templates
- * 
- * @param htmlTemplate - HTML template string
- * @param textTemplate - Text template string (optional)
- * @param variables - Object mapping variable names to values
- * @returns Object with processed html and text
+ * @returns Template with all fields having variables replaced
  */
 export function applyMergeVariablesToTemplate(
-  htmlTemplate: string,
-  textTemplate: string | null | undefined,
-  variables: Record<string, string | number | null | undefined>
-): { html: string; text: string | null } {
+  template: { subject: string; body_html: string; body_text?: string | null },
+  variables: Record<string, string>
+): { subject: string; body_html: string; body_text?: string } {
   return {
-    html: applyMergeVariables(htmlTemplate, variables),
-    text: textTemplate ? applyMergeVariables(textTemplate, variables) : null,
+    subject: applyMergeVariables(template.subject, variables),
+    body_html: applyMergeVariables(template.body_html, variables),
+    body_text: template.body_text ? applyMergeVariables(template.body_text, variables) : undefined,
   };
 }
-

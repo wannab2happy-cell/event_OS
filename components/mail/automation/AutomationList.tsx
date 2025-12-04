@@ -35,3 +35,6 @@ export function AutomationList({ automations, templates, eventId, onEdit }: Auto
   );
 }
 
+
+
+

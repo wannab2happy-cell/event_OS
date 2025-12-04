@@ -69,3 +69,6 @@ export function JobSegmentationCard({ segmentation }: JobSegmentationCardProps) 
   );
 }
 
+
+
+

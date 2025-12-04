@@ -28,3 +28,6 @@ export function MessageTemplateList({ templates, eventId, onSend }: MessageTempl
   );
 }
 
+
+
+

@@ -84,3 +84,6 @@ export function ParticipantsCardView({ participants, eventId, onParticipantClick
   );
 }
 
+
+
+

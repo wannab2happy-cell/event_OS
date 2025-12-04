@@ -14,3 +14,6 @@ export function FollowUpStatusBadge({ isActive }: FollowUpStatusBadgeProps) {
   );
 }
 
+
+
+

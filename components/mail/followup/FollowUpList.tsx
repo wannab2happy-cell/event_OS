@@ -37,3 +37,6 @@ export function FollowUpList({ followups, templates, jobs, eventId, onEdit }: Fo
   );
 }
 
+
+
+

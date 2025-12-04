@@ -146,3 +146,6 @@ export function FollowUpCard({ followup, templateName, baseJobName, eventId, onE
   );
 }
 
+
+
+

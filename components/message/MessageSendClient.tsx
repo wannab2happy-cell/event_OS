@@ -153,3 +153,6 @@ export function MessageSendClient({ template, eventId, event, companies }: Messa
   );
 }
 
+
+
+

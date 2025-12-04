@@ -44,3 +44,6 @@ export function TemplateCard({ template, eventId }: TemplateCardProps) {
   );
 }
 
+
+
+

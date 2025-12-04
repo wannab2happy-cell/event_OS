@@ -158,3 +158,6 @@ export function AutomationCard({ automation, templateName, eventId, onEdit }: Au
   );
 }
 
+
+
+

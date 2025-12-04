@@ -105,3 +105,6 @@ export function JobRow({ job, templateName, eventId }: JobRowProps) {
   );
 }
 
+
+
+

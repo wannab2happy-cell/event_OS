@@ -757,3 +757,6 @@ if (!isVercelCron) {
 
 **문의사항**: 배포 중 문제 발생 시 `STEP_22_COMPLETION_REPORT.md` 참고
 
+
+
+

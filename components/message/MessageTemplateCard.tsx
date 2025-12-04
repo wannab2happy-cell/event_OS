@@ -50,3 +50,6 @@ export function MessageTemplateCard({ template, eventId, onSend }: MessageTempla
   );
 }
 
+
+
+

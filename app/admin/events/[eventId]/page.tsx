@@ -15,3 +15,6 @@ export default async function EventPage({ params }: EventPageProps) {
   redirect(`/admin/events/${eventId}/overview`);
 }
 
+
+
+

@@ -1,10 +1,18 @@
+/**
+ * Participants Table View Component
+ * 
+ * Displays participants in a table format with columns:
+ * Name, Company, Email, Registration Status, Assignment Status, Check-in, Actions
+ */
+
 'use client';
 
 import Link from 'next/link';
-import { MoreVertical, Plane, Hotel, Edit3 } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from './StatusBadge';
-import type { Participant } from '@/lib/types';
+import type { Participant } from '@/lib/types/participants';
+import { getAssignmentStatus, getCheckInLabel } from '@/lib/utils/participants';
 
 interface ParticipantsTableViewProps {
   participants: Participant[];
@@ -12,7 +20,11 @@ interface ParticipantsTableViewProps {
   onParticipantClick: (participant: Participant) => void;
 }
 
-export function ParticipantsTableView({ participants, eventId, onParticipantClick }: ParticipantsTableViewProps) {
+export function ParticipantsTableView({
+  participants,
+  eventId,
+  onParticipantClick,
+}: ParticipantsTableViewProps) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -20,16 +32,22 @@ export function ParticipantsTableView({ participants, eventId, onParticipantClic
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                이름 / 이메일
+                이름
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                소속 / 직책
+                회사
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                상태
+                이메일
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                확정
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                등록 상태
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                배정 상태
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                체크인
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 작업
@@ -39,61 +57,65 @@ export function ParticipantsTableView({ participants, eventId, onParticipantClic
           <tbody className="bg-white divide-y divide-gray-200">
             {participants.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   참가자가 없습니다.
                 </td>
               </tr>
             ) : (
-              participants.map((participant) => (
-                <tr
-                  key={participant.id}
-                  onClick={() => onParticipantClick(participant)}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{participant.name}</div>
-                    <div className="text-sm text-gray-500">{participant.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{participant.company ?? '-'}</div>
-                    <div className="text-sm text-gray-500">{participant.position ?? '-'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={participant.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex justify-center items-center gap-2">
-                      <span
-                        className={`p-1 rounded-full ${
-                          participant.is_travel_confirmed ? 'bg-green-500' : 'bg-gray-300'
-                        }`}
-                        title="항공 확정"
+              participants.map((participant) => {
+                const assignment = getAssignmentStatus(participant);
+                const checkInLabel = getCheckInLabel(participant);
+
+                return (
+                  <tr
+                    key={participant.id}
+                    onClick={() => onParticipantClick(participant)}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{participant.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{participant.company ?? '—'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{participant.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={participant.status} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {assignment.isConflict ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Conflict
+                        </span>
+                      ) : assignment.isUnassigned ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          Unassigned
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          {assignment.text}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{checkInLabel}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <Link
+                        href={`/admin/events/${eventId}/participants/${participant.id}/edit`}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <Plane className="w-3 h-3 text-white" />
-                      </span>
-                      <span
-                        className={`p-1 rounded-full ${
-                          participant.is_hotel_confirmed ? 'bg-green-500' : 'bg-gray-300'
-                        }`}
-                        title="호텔 확정"
-                      >
-                        <Hotel className="w-3 h-3 text-white" />
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <Link
-                      href={`/admin/events/${eventId}/participants/${participant.id}/edit`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Button variant="ghost" size="sm">
-                        <Edit3 className="w-4 h-4 mr-1" />
-                        관리
-                      </Button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
+                        <Button variant="ghost" size="sm">
+                          <Edit3 className="w-4 h-4 mr-1" />
+                          관리
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -101,7 +123,3 @@ export function ParticipantsTableView({ participants, eventId, onParticipantClic
     </div>
   );
 }
-
-
-
-

@@ -1,0 +1,38 @@
+/**
+ * Vendor Console Layout
+ * 
+ * Layout for all vendor routes
+ */
+
+import Link from 'next/link';
+import { Home } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+
+export default function VendorLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-semibold">Vendor Console</h1>
+            </div>
+            <nav className="flex items-center gap-2">
+              <Link href="/vendor">
+                <Button variant="ghost" size="sm">
+                  <Home className="w-4 h-4 mr-2" />
+                  Home
+                </Button>
+              </Link>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">{children}</main>
+    </div>
+  );
+}
+

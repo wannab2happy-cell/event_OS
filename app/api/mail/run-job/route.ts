@@ -1,18 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getEmailJob, getEmailTemplate } from '@/lib/mail/api';
-import { sendEmail } from '@/lib/mail/sender';
+import { sendJobEmail } from '@/lib/mail/sendJob';
 import { buildMyTableLink } from '@/lib/mail/linkBuilder';
 import { applyMergeVariablesToTemplate } from '@/lib/mail/parser';
+import { validate } from '@/lib/api/validate';
+import { createErrorResponse } from '@/lib/api/handleError';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { jobId } = body;
+    const validation = await validate(request, {
+      jobId: {
+        type: 'string',
+        required: true,
+      },
+    });
 
-    if (!jobId) {
-      return NextResponse.json({ error: 'jobId is required' }, { status: 400 });
+    if (!validation.valid) {
+      return NextResponse.json(
+        { success: false, error: validation.errors?.join(', ') },
+        { status: 400 }
+      );
     }
+
+    const { jobId } = validation.data!;
 
     const supabase = await createClient();
 
@@ -149,7 +160,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Send email
-        const sendResult = await sendEmail({
+        const sendResult = await sendJobEmail({
           to: participant.email,
           subject: processedSubject,
           html,
@@ -205,26 +216,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error('Error processing email job:', err);
-
-    // Try to mark job as failed
-    try {
-      const body = await request.json();
-      const { jobId } = body;
-      if (jobId) {
-        const supabase = await createClient();
-        await supabase
-          .from('email_jobs')
-          .update({ status: 'failed', updated_at: new Date().toISOString() })
-          .eq('id', jobId);
-      }
-    } catch {
-      // Ignore errors in cleanup
-    }
-
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error occurred' },
-      { status: 500 }
-    );
+    return createErrorResponse(err);
   }
 }
 

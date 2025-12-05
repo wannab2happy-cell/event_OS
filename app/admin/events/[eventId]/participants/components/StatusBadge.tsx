@@ -17,18 +17,18 @@ const statusMap: Record<
     icon: <Clock4 className="w-3 h-3" />,
   },
   registered: {
-    label: '정보 입력 중',
+    label: '등록 중',
     color: 'bg-yellow-100 text-yellow-700',
+    icon: <Clock4 className="w-3 h-3" />,
+  },
+  cancelled: {
+    label: '취소됨',
+    color: 'bg-red-100 text-red-700',
     icon: <Clock4 className="w-3 h-3" />,
   },
   completed: {
     label: '등록 완료',
     color: 'bg-green-100 text-green-700',
-    icon: <CheckCircle2 className="w-3 h-3" />,
-  },
-  checked_in: {
-    label: '현장 체크인',
-    color: 'bg-blue-100 text-blue-700',
     icon: <CheckCircle2 className="w-3 h-3" />,
   },
 };

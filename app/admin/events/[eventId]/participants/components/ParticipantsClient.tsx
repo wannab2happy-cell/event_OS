@@ -1,24 +1,41 @@
+/**
+ * Participants Client Component
+ * 
+ * Phase 3: Refined Participants module with unified filter/sort state management
+ * 
+ * Manages:
+ * - Single source of truth for all filters and sort options
+ * - Filtering and sorting logic via utility functions
+ * - View mode (table/cards) and drawer state
+ */
+
 'use client';
 
 import { useState, useMemo } from 'react';
-import { ParticipantsActionBar } from './ParticipantsActionBar';
+import { ParticipantsActionBar, type ParticipantFilters } from './ParticipantsActionBar';
 import { ParticipantsTableView } from './ParticipantsTableView';
 import { ParticipantsCardView } from './ParticipantsCardView';
 import { ParticipantDrawer } from './ParticipantDrawer';
-import type { Participant, ParticipantStatus } from '@/lib/types';
+import type { Participant } from '@/lib/types/participants';
+import { filterAndSortParticipants } from '@/lib/utils/participants';
 
 interface ParticipantsClientProps {
   initialParticipants: Participant[];
   eventId: string;
 }
 
+const defaultFilters: ParticipantFilters = {
+  searchQuery: '',
+  statusFilter: 'all',
+  assignmentFilter: 'all',
+  companyFilter: 'all',
+  vipOnly: false,
+  sortOption: 'newest_registration',
+  viewMode: 'table',
+};
+
 export function ParticipantsClient({ initialParticipants, eventId }: ParticipantsClientProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ParticipantStatus | 'all'>('all');
-  const [companyFilter, setCompanyFilter] = useState('all');
-  const [isVipOnly, setIsVipOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'company' | 'created_at'>('created_at');
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [filters, setFilters] = useState<ParticipantFilters>(defaultFilters);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   // Extract unique companies
@@ -30,72 +47,23 @@ export function ParticipantsClient({ initialParticipants, eventId }: Participant
     return Array.from(companySet).sort();
   }, [initialParticipants]);
 
-  // Filter and sort participants
+  // Apply filters and sorting
   const filteredParticipants = useMemo(() => {
-    let filtered = [...initialParticipants];
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name?.toLowerCase().includes(query) ||
-          p.email?.toLowerCase().includes(query) ||
-          p.company?.toLowerCase().includes(query)
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => p.status === statusFilter);
-    }
-
-    // Company filter
-    if (companyFilter !== 'all') {
-      filtered = filtered.filter((p) => p.company === companyFilter);
-    }
-
-    // VIP filter
-    if (isVipOnly) {
-      filtered = filtered.filter((p) => p.is_vip === true);
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return (a.name || '').localeCompare(b.name || '');
-        case 'company':
-          return (a.company || '').localeCompare(b.company || '');
-        case 'created_at':
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        default:
-          return 0;
-      }
+    return filterAndSortParticipants(initialParticipants, {
+      searchQuery: filters.searchQuery,
+      statusFilter: filters.statusFilter,
+      assignmentFilter: filters.assignmentFilter,
+      companyFilter: filters.companyFilter,
+      vipOnly: filters.vipOnly,
+      sortOption: filters.sortOption,
     });
-
-    return filtered;
-  }, [initialParticipants, searchQuery, statusFilter, companyFilter, isVipOnly, sortBy]);
+  }, [initialParticipants, filters]);
 
   return (
     <>
-      <ParticipantsActionBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        companyFilter={companyFilter}
-        onCompanyFilterChange={setCompanyFilter}
-        isVipOnly={isVipOnly}
-        onVipToggle={setIsVipOnly}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        companies={companies}
-      />
+      <ParticipantsActionBar filters={filters} onFiltersChange={setFilters} companies={companies} />
 
-      {viewMode === 'table' ? (
+      {filters.viewMode === 'table' ? (
         <ParticipantsTableView
           participants={filteredParticipants}
           eventId={eventId}
@@ -117,7 +85,3 @@ export function ParticipantsClient({ initialParticipants, eventId }: Participant
     </>
   );
 }
-
-
-
-

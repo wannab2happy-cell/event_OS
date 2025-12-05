@@ -1,7 +1,17 @@
+/**
+ * Participants Page
+ * 
+ * Phase 3: Refined Participants module
+ * 
+ * Provides powerful but clear filters/search/sort via Action Bar,
+ * shows operationally useful data in both Table and Card views,
+ * and uses a structured, multi-section Drawer for each participant.
+ */
+
 import { notFound } from 'next/navigation';
 import { CheckCircle2, Clock4 } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import type { Participant, ParticipantStatus } from '@/lib/types';
+import type { Participant, ParticipantStatus } from '@/lib/types/participants';
 import { AdminPage } from '@/components/admin/layout/AdminPage';
 import { MetricCard } from '@/components/ui/metric-card';
 import { ParticipantsClient } from './components/ParticipantsClient';
@@ -15,15 +25,15 @@ const statusMap: Record<
     icon: Clock4,
   },
   registered: {
-    label: '정보 입력 중',
+    label: '등록 중',
+    icon: Clock4,
+  },
+  cancelled: {
+    label: '취소됨',
     icon: Clock4,
   },
   completed: {
     label: '등록 완료',
-    icon: CheckCircle2,
-  },
-  checked_in: {
-    label: '현장 체크인',
     icon: CheckCircle2,
   },
 };
@@ -67,8 +77,8 @@ export default async function ParticipantListPage({ params }: ParticipantListPag
     {
       invited: 0,
       registered: 0,
+      cancelled: 0,
       completed: 0,
-      checked_in: 0,
     } as Record<ParticipantStatus, number>
   );
 

@@ -10,7 +10,7 @@ import { getEmailJob } from './api';
 import { buildSegmentQuery } from './segmentation';
 import type { SegmentationConfig } from './segmentation';
 import { mergeTemplate } from './merge';
-import { sendEmail } from './sender';
+import { sendJobEmail } from './sendJob';
 import type { EmailJob } from './types';
 import type { Participant } from '@/lib/types';
 
@@ -221,7 +221,7 @@ export async function processJob(job: EmailJob): Promise<{ success: boolean; err
         });
 
         // Send email
-        const sendResult = await sendEmail({
+        const sendResult = await sendJobEmail({
           to: participant.email,
           subject: merged.subject,
           html: merged.html,

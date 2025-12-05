@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getNextJob, processJob } from '@/lib/mail/worker';
+import { createErrorResponse } from '@/lib/api/handleError';
 
 /**
  * Email Job Worker API Route
@@ -67,14 +68,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (err) {
     console.error('Worker error:', err);
-    return NextResponse.json(
-      {
-        success: false,
-        message: err instanceof Error ? err.message : 'Unknown error occurred',
-        processed: false,
-      },
-      { status: 500 }
-    );
+    return createErrorResponse(err);
   }
 }
 
@@ -101,13 +95,7 @@ export async function GET(request: NextRequest) {
       totalCount: job.total_count,
     });
   } catch (err) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: err instanceof Error ? err.message : 'Unknown error occurred',
-      },
-      { status: 500 }
-    );
+    return createErrorResponse(err);
   }
 }
 
